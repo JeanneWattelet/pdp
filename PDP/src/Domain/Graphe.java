@@ -23,6 +23,11 @@ public class Graphe {
 		createStringGraph();
 	}
 	
+	public void addWeightedEdge(String v1, String v2, double weight) {
+		g.addEdge(v1, v2);
+		g.setEdgeWeight(v1, v2, weight);
+	}
+	
 	public void createStringGraph() {
         String v1 = "Gare St-Jean";
         String v2 = "Peixotto";
@@ -33,18 +38,13 @@ public class Graphe {
         this.g.addVertex(v1);
         this.g.addVertex(v2);
         this.g.addVertex(v3);
-        this.g.addVertex(v4);
-
-        //DefaultWeightedEdge e = new DefaultWeightedEdge();
-        
+        this.g.addVertex(v4);    
         
         // add edges to create a circuit
-        DefaultWeightedEdge e = this.g.addEdge(v1, v2);
-        g.setEdgeWeight(e, 5);
-        this.g.addEdge(v2, v3);
-        this.g.addEdge(v4, v3);
-        this.g.addEdge(v1, v4);
-        
+        addWeightedEdge(v1, v2, 5);
+        addWeightedEdge(v2, v3, 4);
+        addWeightedEdge(v1, v4, 8);
+        addWeightedEdge(v4, v3, 8);
         
         HashSet<String> s = new HashSet<String>();
         s.add(v1);
@@ -53,7 +53,7 @@ public class Graphe {
         ALTAdmissibleHeuristic<String, DefaultWeightedEdge> h = new ALTAdmissibleHeuristic<String, DefaultWeightedEdge>(g,s);
         AStarShortestPath<String, DefaultWeightedEdge> astar = new AStarShortestPath<String, DefaultWeightedEdge>(g, h);
         System.out.println(astar.getPath(v1, v3));
-        
+        System.out.println(astar.getPathWeight(v1, v3));
     }
 	
 	public String toString() {
