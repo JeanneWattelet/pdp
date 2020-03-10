@@ -1,12 +1,16 @@
 package transport;
 
+//import java.util.ArrayList;
+
 public class Station {
 	private String nom;
 	private Coordonnees position;
+	//private ArrayList<Horaire> horaires;
 	
 	public Station(String n, Coordonnees c) {
 		this.nom = n;
 		this.position = c;
+		//horaires = new ArrayList<Horaire>();
 	}
 	
 	public Station(String n, float x, float y) {
@@ -20,6 +24,10 @@ public class Station {
 	public Coordonnees getPosition() {
 		return position;
 	}
+	
+	/*public ArrayList<Horaire> getHoraires(){
+		return horaires;
+	}*/
 
 	@Override
 	public String toString() {
@@ -40,6 +48,7 @@ public class Station {
 		if(!(obj instanceof Station))
 			return false;
 		Station o = (Station) obj;
+		//System.out.println(o.nom+" / "+this.nom);
 		if(o.nom!=this.nom)
 			return false;
 		if(o.position!=this.position)

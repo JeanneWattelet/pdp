@@ -26,11 +26,12 @@ public class Carte {
 	public Set<Trajet> getTrajets(Horaire h, Set<Integer> v) {
 		Set<Trajet> rep = new HashSet<Trajet>();
 		Iterator<Integer> i = v.iterator();
-		Iterator<Ligne> j = lignes.iterator();
+		
 		Ligne l;
 		int mdt;
 		while(i.hasNext()) {
 			mdt=i.next();
+			Iterator<Ligne> j = lignes.iterator();
 			while(j.hasNext()) {
 				l=j.next();
 				if(l.getVehicule()==mdt)

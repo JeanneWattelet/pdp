@@ -28,8 +28,13 @@ public class Horaire {
 			return false;
 		if(this.heure>h.heure)
 			return false;
-		if(this.heure<h.heure)
-			return true;
+		if((this.heure>4 )&(h.heure<4)) {
+			//changement theorique de jour entre this et h
+		}else {
+			if(this.heure>h.getHeure()) {
+				return false;
+			}
+		}
 		if(this.minute>h.minute)
 			return false;
 		return true;
