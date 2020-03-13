@@ -7,10 +7,16 @@ public class Ligne {
 	private String nom;
 	private int vehicule;
 	
-	public Ligne(String n, int v) {
-		this.trajets = new HashSet<Trajet>();
+	
+	
+	public Ligne(String n, int v, Set<Trajet> t) {
+		this.trajets = t;
 		this.nom=n;
 		this.vehicule=v;
+	}
+	
+	public Ligne(String n, int v) {
+		this(n, v, new HashSet<Trajet>());
 	}
 
 	public Set<Trajet> getTrajets() {
@@ -44,6 +50,8 @@ public class Ligne {
 	
 	public String getStringVehicule() {
 		switch(vehicule) {
+			case 0:
+				return "attente";
 			case 1:
 				return "bus";
 			case 2:

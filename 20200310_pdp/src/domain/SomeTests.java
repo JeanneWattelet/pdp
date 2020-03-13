@@ -15,6 +15,8 @@ import transport.*;
 public class SomeTests {
 
 	public static void main(String[] args) {
+		
+		long debut = System.currentTimeMillis();
 		/*Graphe g = new Graphe();
 		System.out.println(g);
 		g.astar("Gare St-Jean", "Peixotto");*/
@@ -49,7 +51,43 @@ public class SomeTests {
 		Station s11 = new Station("Porte Sud", 16, 0);
 		
 		//les trajets
-		Trajet tramA1 = new Trajet("A-1");
+		
+		int j = 0;
+		
+		Trajet trajetstramA[] = new Trajet[200];
+		Ligne tramA = new Ligne("A", 2);
+		for(int i = 0 ; i<200 ; i++) {
+			trajetstramA[i] = new Trajet("A"+i);
+			trajetstramA[i].addArret(s7, new Horaire(1, 5+j, (4*i)%60));
+			trajetstramA[i].addArret(s6, new Horaire(1, 5+j, (7+4*i)%60));
+			trajetstramA[i].addArret(s5, new Horaire(1, 5+j, (9+4*i)%60));
+			trajetstramA[i].addArret(s4, new Horaire(1, 5+j, (11+4*i)%60));
+			trajetstramA[i].addArret(s3, new Horaire(1, 5+j, (14+4*i)%60));
+			if(i%15==0) {
+				j++;
+			}
+			tramA.addTrajet(trajetstramA[i]);
+		}
+		
+		j=0;
+		
+		Trajet trajetstramB[] = new Trajet[200];
+		Ligne tramB = new Ligne("A", 2);
+		for(int i = 0 ; i<200 ; i++) {
+			trajetstramB[i] = new Trajet("B"+i);
+			trajetstramB[i].addArret(s1, new Horaire(1, 5+j, (3+7*i)%60));
+			trajetstramB[i].addArret(s2, new Horaire(1, 5+j, (7+7*i)%60));
+			trajetstramB[i].addArret(s5, new Horaire(1, 5+j, (10+7*i)%60));
+			trajetstramB[i].addArret(s8, new Horaire(1, 5+j, (12+7*i)%60));
+			if(i%8==0) {
+				j++;
+			}
+			tramB.addTrajet(trajetstramB[i]);
+		}
+		
+		
+		
+		/*Trajet tramA1 = new Trajet("A-1");
 		tramA1.addArret(s7, new Horaire(1, 8, 0));
 		tramA1.addArret(s6, new Horaire(1, 8, 7));
 		tramA1.addArret(s5, new Horaire(1, 8, 9));
@@ -90,16 +128,20 @@ public class SomeTests {
 		tramA6.addArret(s5, new Horaire(1, 8, 25));
 		tramA6.addArret(s4, new Horaire(1, 8, 23));
 		tramA6.addArret(s3, new Horaire(1, 8, 20));
+		*/
 		
-		Ligne tramA = new Ligne("A", 2);
-		tramA.addTrajet(tramA1);
+		
+		
+		/*
 		tramA.addTrajet(tramA2);
 		tramA.addTrajet(tramA3);
 		tramA.addTrajet(tramA4);
 		tramA.addTrajet(tramA5);
 		tramA.addTrajet(tramA6);
+		*/
 		
 		
+		/*
 		Trajet tramB1 = new Trajet("B-1");
 		tramB1.addArret(s1, new Horaire(1, 8, 3));
 		tramB1.addArret(s2, new Horaire(1, 8, 7));
@@ -143,7 +185,7 @@ public class SomeTests {
 		tramB.addTrajet(tramB4);
 		tramB.addTrajet(tramB5);
 		tramB.addTrajet(tramB6);
-		
+		*/
 		
 		Trajet bus11 = new Trajet("1-1");
 		bus11.addArret(s4, new Horaire(1, 8, 7));
@@ -215,10 +257,13 @@ public class SomeTests {
 		
 		GrapheTrajet g = new GrapheTrajet(v.getTrajets(h, set));
 		
-
+		
 
 		g.astar(s11, s2, h, v.getTrajets(h, set));
 	
+		
+		//g.dijkstra(s11, s2, h, v.getTrajets(h, set));
+		System.out.println(System.currentTimeMillis()-debut+" millisecondes");
 	}
 
 }
