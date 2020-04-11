@@ -4,14 +4,26 @@ public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 
 	private static final long serialVersionUID = -3259071493169286685L ;
 	private int transport;
+	private String from;
+	private String to;
 	
-	public ArcTrajet(int transport){
+	public ArcTrajet(int transport, String from, String to){
 		super();
 		this.transport = transport;
+		this.from = from;
+		this.to = to;
 	}
 	
 	public int getTransport() {
 		return transport;
+	}
+	
+	public String getFrom() {
+		return from;
+	}
+	
+	public String getTo() {
+		return to;
 	}
 
 	public Object getSourceT() {

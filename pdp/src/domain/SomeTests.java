@@ -275,6 +275,6 @@ public class SomeTests {
 		g2.dijkstra(s11, s2, h, v.getTrajets(h, set));
 		System.out.println("Dijkstra : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
+		
 	}
-
 }

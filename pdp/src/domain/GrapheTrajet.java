@@ -28,6 +28,14 @@ public class GrapheTrajet implements java.io.Serializable{
 		creatHeuristicForAStar(heuristique);
 	}
 	
+	public String denommer(String s) {
+		if(s.contains("&")) {
+			int i = s.indexOf('&');
+			return s.substring(0, i);
+		}
+		return s;
+	}
+	
 	public String nommerSommet(Station s, Horaire h) {
 		return s.toString()+"&"+h.toString();
 	}
@@ -154,7 +162,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	
 	public void addWeightedEdge(String v1, String v2, int weight, int vehicule) {
 		if(!v1.contains(v2)) {
-			ArcTrajet arc = new ArcTrajet(vehicule);
+			ArcTrajet arc = new ArcTrajet(vehicule, denommer(v1), denommer(v2));
 			g.addEdge(v1, v2, arc);
 			g.setEdgeWeight(v1, v2, weight);
 		}
