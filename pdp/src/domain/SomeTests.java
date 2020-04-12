@@ -272,9 +272,9 @@ public class SomeTests {
 		
 		System.out.println("Type du jour dont vous voulez recuperer le graphe :");
 		Scanner sc = new Scanner(System.in);
-		//if(sc.hasNext())
+		if(sc.hasNext())
 			j = sc.nextInt();
-		//else
+		else
 			j=7;
 	    sc.close();
 	    
@@ -286,6 +286,9 @@ public class SomeTests {
 		g2.dijkstra("Porte Sud", "Grande Place", h);
 		System.out.println("Dijkstra : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
+		temps = System.currentTimeMillis();
+		g2.astar("Porte Sud", "Grande Place", h);
+		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
 	}
 }

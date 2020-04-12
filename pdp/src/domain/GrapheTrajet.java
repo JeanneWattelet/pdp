@@ -3,7 +3,6 @@ package domain;
 import transport.*;
 
 import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.AStarAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.ALTAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
@@ -14,18 +13,14 @@ import java.util.*;
 public class GrapheTrajet implements java.io.Serializable{
 	private static final long serialVersionUID = -7760248029679113128L;
 	private SimpleDirectedWeightedGraph<String, ArcTrajet> g;
-	private transient AStarAdmissibleHeuristic<String> h;
 	
 	public GrapheTrajet(Set<Ligne> set) {
 		g = new SimpleDirectedWeightedGraph<String, ArcTrajet>(ArcTrajet.class);
-		Set<String> heuristique=ajouterSommets(set);
+		ajouterSommets(set);
 		ajouterAretesDeTransport(set);
 		ajouterAretesAttente(set);
 		g.addVertex("depart");
 		g.addVertex("arrivee");
-		heuristique.add("depart");
-		heuristique.add("arrivee");
-		creatHeuristicForAStar(heuristique);
 	}
 	
 	
@@ -36,8 +31,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	 * (Une fois que celui-ci est créé, ces fonctions ne sont plus utiles pour la résolution)
 	 */
 	
-	public Set<String> ajouterSommets(Set<Ligne> lignes) {
-		HashSet<String> set = new HashSet<String>();
+	public void ajouterSommets(Set<Ligne> lignes) {
 		String sommet;
 		Set<Trajet> setTrajet;
 		Ligne l;
@@ -57,16 +51,13 @@ public class GrapheTrajet implements java.io.Serializable{
 				while(iterStations.hasNext()) {//et pour chaque station
 					s=iterStations.next();
 					h=arrets.get(s);
-					sommet = nommerSommet(s, h);
-					//sommet=s.toString()+h.toString();//on cree un sommet au nom unique selon son lieu et son horaire
+					sommet = nommerSommet(s, h);//creation d'un nom unique
 					if(!this.g.containsVertex(sommet)) {
 						this.g.addVertex(sommet);
-						set.add(sommet);
 					}
 				}
 			}
 		}
-		return set;
 	}
 
 	private void ajouterAretesDeTransport(Set<Ligne> lignes){
@@ -255,12 +246,11 @@ public class GrapheTrajet implements java.io.Serializable{
 	 * Algos de résolution (A* et Dijkstra
 	 */
 	
-	public void creatHeuristicForAStar(Set<String> set) {
-		h = new ALTAdmissibleHeuristic<String, ArcTrajet>(g,set);
-	}
 	
 	public List<ArcTrajet> astar(String from, String to, Horaire h) {
-		AStarShortestPath<String, ArcTrajet> astar = new AStarShortestPath<String, ArcTrajet>(this.g, this.h);
+		
+		
+		AStarShortestPath<String, ArcTrajet> astar = new AStarShortestPath<String, ArcTrajet>(this.g, new ALTAdmissibleHeuristic<String, ArcTrajet>(g,g.vertexSet()));
 		
 		ajouterDepart(from, h);
 		ajouterArrivee(to);
