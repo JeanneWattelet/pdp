@@ -7,7 +7,16 @@ public class Ligne {
 	private String nom;
 	private int vehicule;
 	
-	
+	/*
+	 * Définition des contantes pour les trajets : clarification du code.
+	 * Serait-il plus pratique de créer une classe statique à part pour les transports ?
+	 */
+	public final static int ATTENTE = 0; 
+	public final static int BUS = 1; 
+	public final static int TRAM = 2;
+	public final static int METRO = 3;
+	public final static int BATEAU = 4;
+	public final static int PIED = 5;	
 	
 	public Ligne(String n, int v, Set<Trajet> t) {
 		this.trajets = t;
@@ -50,16 +59,18 @@ public class Ligne {
 	
 	public String getStringVehicule() {
 		switch(vehicule) {
-			case 0:
+			case ATTENTE:
 				return "attente";
-			case 1:
+			case BUS:
 				return "bus";
-			case 2:
+			case TRAM:
 				return "tram";
-			case 3 :
+			case METRO :
 				return "metro";
-			case 4 :
+			case BATEAU :
 				return "bateau";
+			case PIED :
+				return "pied";
 		}
 		return "pied";
 	}

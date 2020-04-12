@@ -1,17 +1,30 @@
 package transport;
 
 public class Horaire {
-	private int jour;
+	private String jour;
 	private int heure;
 	private int minute;
 	
-	public Horaire(int j, int h, int m) {
+	/*
+	 * Définition des contantes pour les trajets : clarification du code.
+	 * Serait-il plus pratique de créer une classe statique à part pour les jours ?
+	 */
+	public final static String LUNDI = "Lundi"; 
+	public final static String MARDI = "Mardi"; 
+	public final static String MERCREDI = "Mercredi";
+	public final static String JEUDI = "Jeudi";
+	public final static String VENDREDI = "Vendredi";
+	public final static String SAMEDI = "Samedi";
+	public final static String DIMANCHE = "Dimanche";
+	public final static String FERIER = "Ferier";
+	
+	public Horaire(String j, int h, int m) {
 		jour=j;
 		heure = h;
 		minute = m;
 	}
 	
-	public int getJour() {
+	public String getJour() {
 		return jour;
 	}
 	
@@ -24,11 +37,9 @@ public class Horaire {
 	}
 	
 	public boolean estAvant(Horaire h) {
-		if(h.jour!=this.jour)
-			return false;
 		if(this.heure>h.heure)
 			return false;
-		if((this.heure>4 )&(h.heure<4)) {
+		if((this.heure>4)&&(h.heure<4)) {
 			//changement theorique de jour entre this et h
 		}else {
 			if(this.heure>h.getHeure()) {
@@ -54,21 +65,22 @@ public class Horaire {
 	
 	public String getStringJour() {
 		switch(jour) {
-			case 1 :
+			case LUNDI :
 				return "Lundi";
-			case 2 :
+			case MARDI :
 				return "Mardi";
-			case 3 :
+			case MERCREDI :
 				return "Mercredi";
-			case 4 :
+			case JEUDI :
 				return "Jeudi";
-			case 5 :
+			case VENDREDI :
 				return "Vendredi";
-			case 6 :
+			case SAMEDI :
 				return "Samedi";
-			case 7 :
+			case DIMANCHE :
 				return "Dimanche";
-			default :
+			case FERIER :
+				return "Ferier";
 		}
 		return "Jour ferier";
 	}
@@ -80,7 +92,7 @@ public class Horaire {
 	
 	@Override
 	public int hashCode() {
-		return this.jour*10000+this.heure*100+this.minute;
+		return this.jour.hashCode()+this.heure*100+this.minute;
 	}
 	
 	@Override

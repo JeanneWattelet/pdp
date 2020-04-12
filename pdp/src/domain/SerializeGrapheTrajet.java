@@ -16,7 +16,6 @@ public class SerializeGrapheTrajet {
 		System.out.println("Type du jour dont vous voulez donner le graphe :");
 		Scanner sc = new Scanner(System.in);
 	    jour = sc.nextInt();
-	    sc.close();
 
 		try {
 			final FileOutputStream fichier = new FileOutputStream(jour+".ser");

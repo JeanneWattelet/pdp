@@ -28,17 +28,13 @@ public class GrapheTrajet implements java.io.Serializable{
 		creatHeuristicForAStar(heuristique);
 	}
 	
-	public String denommer(String s) {
-		if(s.contains("&")) {
-			int i = s.indexOf('&');
-			return s.substring(0, i);
-		}
-		return s;
-	}
 	
-	public String nommerSommet(Station s, Horaire h) {
-		return s.toString()+"&"+h.toString();
-	}
+	
+	/*
+	 * Création d'un nouveau graphe à partir d'un ensemble d'entités du package "Transport"
+	 * (Cette partie est utile avant la sérialisation du graphe)
+	 * (Une fois que celui-ci est créé, ces fonctions ne sont plus utiles pour la résolution)
+	 */
 	
 	public Set<String> ajouterSommets(Set<Ligne> lignes) {
 		HashSet<String> set = new HashSet<String>();
@@ -72,7 +68,7 @@ public class GrapheTrajet implements java.io.Serializable{
 		}
 		return set;
 	}
-	
+
 	private void ajouterAretesDeTransport(Set<Ligne> lignes){
 		String sommetA, sommetB;
 		Ligne l;
@@ -160,6 +156,47 @@ public class GrapheTrajet implements java.io.Serializable{
 		}
 	}
 	
+	/*
+	 * Gestion des noms des sommets
+	 */
+	
+	public String denommer(String s) {
+		if(s.contains("&")) {
+			int i = s.indexOf('&');
+			return s.substring(0, i);
+		}
+		return s;
+	}
+	
+	public Horaire trouverHoraire(String s) {//fonction tres probablement ameliorable...
+		String d=Horaire.FERIER;
+		int h=0, m=0;
+		if(s.contains("&")) {
+			
+			int i = s.indexOf('&')+1;
+			int j = s.indexOf(' ', i)+1;
+			d = s.substring(i, j-1);
+			
+			i = s.indexOf(':', j)+1;
+			h=Integer.parseInt(s.substring(j, i-1));
+			
+			j = s.length();
+			m=Integer.parseInt(s.substring(i, j));
+			
+		}
+		return new Horaire(d, h, m);
+	}
+	
+	public String nommerSommet(Station s, Horaire h) {
+		return s.toString()+"&"+h.toString();
+	}
+	
+	
+	/*
+	 * Fonction d'ajout d'un arc valué.
+	 * Utile à la fois à la création du graphe et lors de la résolution du plus court chemin
+	 */
+	
 	public void addWeightedEdge(String v1, String v2, int weight, int vehicule) {
 		if(!v1.contains(v2)) {
 			ArcTrajet arc = new ArcTrajet(vehicule, denommer(v1), denommer(v2));
@@ -168,61 +205,26 @@ public class GrapheTrajet implements java.io.Serializable{
 		}
 	}
 	
-	public void creatHeuristicForAStar(Set<String> set) {
-		h = new ALTAdmissibleHeuristic<String, ArcTrajet>(g,set);
-	}
-	
-	public void ajouterDepart(Station from, Set<Ligne> set) {
-		String sommet;
-		Iterator<Ligne> iterLigne = set.iterator();
-		Ligne ligne;
-		Trajet t;
-		while(iterLigne.hasNext()) {
-			ligne=iterLigne.next();
-			Set<Trajet> setTrajet = ligne.getTrajets();
-			Iterator<Trajet> iterTrajet = setTrajet.iterator();
-			while(iterTrajet.hasNext()) {
-				t=iterTrajet.next();
-				Map<Station, Horaire> map = t.getArrets();
-				Set<Station> stations = map.keySet();
-				Iterator<Station> j = stations.iterator();
-				while(j.hasNext()) {
-					Station s = j.next();
-					if(s.equals(from)) {
-						sommet = nommerSommet(s, map.get(s));
-						//sommet = s.toString()+map.get(s).toString();
-						addWeightedEdge("depart", sommet, 0, 0);
-					}
-				}	
+	public void ajouterDepart(String from, Horaire h) {
+		Iterator<String> i = g.vertexSet().iterator();
+		String vertex;
+		while(i.hasNext()) {
+			vertex = i.next();
+			if(denommer(vertex).equals(from)&&h.estAvant(trouverHoraire(vertex))) {
+				addWeightedEdge("depart", vertex, 0, Ligne.ATTENTE);
 			}
 		}
-		
 	}
 	
-	public void ajouterArrivee(Station to, Set<Ligne> set) {
-		String sommet;
-		Iterator<Ligne> iterLigne = set.iterator();
-		Ligne ligne;
-		Trajet t;
-		while(iterLigne.hasNext()) {
-			ligne=iterLigne.next();
-			Set<Trajet> setTrajet = ligne.getTrajets();
-			Iterator<Trajet> iterTrajet = setTrajet.iterator();
-			while(iterTrajet.hasNext()) {
-				t=iterTrajet.next();
-				Map<Station, Horaire> map = t.getArrets();
-				Set<Station> stations = map.keySet();
-				Iterator<Station> j = stations.iterator();
-				while(j.hasNext()) {
-					Station s = j.next();
-					if(s.equals(to)) {
-						sommet = nommerSommet(s, map.get(s));
-						//sommet = s.toString()+map.get(s).toString();
-						addWeightedEdge(sommet, "arrivee", 0, 0);
-					}
-				}	
+	public void ajouterArrivee(String to) {
+		Iterator<String> i = g.vertexSet().iterator();
+		String vertex;
+		while(i.hasNext()) {
+			vertex = i.next();
+			if(denommer(vertex).equals(to)) {
+				addWeightedEdge(vertex, "arrivee", 0, Ligne.ATTENTE);
 			}
-		}	
+		}
 	}
 
 	public void retirerArcsDepartArrivee() {
@@ -249,11 +251,21 @@ public class GrapheTrajet implements java.io.Serializable{
 		}
 	}
 	
-	public List<ArcTrajet> astar(Station from, Station to, Horaire h, Set<Ligne> set) {
+	/*
+	 * Algos de résolution (A* et Dijkstra
+	 */
+	
+	public void creatHeuristicForAStar(Set<String> set) {
+		h = new ALTAdmissibleHeuristic<String, ArcTrajet>(g,set);
+	}
+	
+	public List<ArcTrajet> astar(String from, String to, Horaire h) {
 		AStarShortestPath<String, ArcTrajet> astar = new AStarShortestPath<String, ArcTrajet>(this.g, this.h);
 		
-		ajouterDepart(from, set);
-		ajouterArrivee(to, set);
+		ajouterDepart(from, h);
+		ajouterArrivee(to);
+		
+		System.out.println(g.toString());
 		
 		GraphPath<String, ArcTrajet> itineraire = astar.getPath("depart", "arrivee");
 		
@@ -266,11 +278,11 @@ public class GrapheTrajet implements java.io.Serializable{
         return itineraire.getEdgeList();
 	}
 	
-	public List<ArcTrajet> dijkstra(Station from, Station to, Horaire h, Set<Ligne> set) {
+	public List<ArcTrajet> dijkstra(String from, String to, Horaire h) {
 		DijkstraShortestPath<String, ArcTrajet> dijkstra = new DijkstraShortestPath<String, ArcTrajet>(this.g);
 		
-		ajouterDepart(from, set);
-		ajouterArrivee(to, set);
+		ajouterDepart(from, h);
+		ajouterArrivee(to);
 		
 		GraphPath<String, ArcTrajet> itineraire = dijkstra.getPath("depart", "arrivee");
 		
@@ -282,6 +294,10 @@ public class GrapheTrajet implements java.io.Serializable{
         
         return itineraire.getEdgeList();
 	}
+	
+	/*
+	 * Fonctions de base d'une classe
+	 */
 	
 	@Override
 	public String toString() {
