@@ -7,4 +7,3 @@ Résumé de ce que nous avons enregistré ici :
  
  Ce sur quoi nous pourrions travailler dans l'avenir :
  - Passer des données GTFS au package transport (voir même directement aux graphes !)
- - Permettre l'utilisation de A* avec sérialisation 1. en sérialisant la liste des sommets (lourd) ou 2. en créant une fonction de parcours des arcs pour récupérer les sommets (long ?) (RAPPEL : la création d'une heuristique par défaut de A* demande de lui donner la liste de tous les sommets).
