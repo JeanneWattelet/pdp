@@ -23,11 +23,11 @@ public class Carte {
 		lignes.add(l);
 	}
 	
-	public Set<Ligne> getTrajets(Horaire h, Set<Integer> v) {
+	public Set<Ligne> getTrajets(Horaire h, Set<String> v) {
 		Set<Ligne> rep = new HashSet<Ligne>();
-		Iterator<Integer> i = v.iterator();
+		Iterator<String> i = v.iterator();
 		Ligne l;
-		int mdt;
+		String mdt;
 		while(i.hasNext()) {
 			mdt=i.next();
 			Iterator<Ligne> j = lignes.iterator();

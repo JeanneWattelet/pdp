@@ -43,11 +43,11 @@ public class SomeTests {
 		Station s3 = new Station("Porte Est", 19, 15);
 		Station s4 = new Station("Quai du Fleuve", 15, 13);
 		Station s5 = new Station("Centre-Ville" , 11, 11);
-		Station s6 = new Station("Quai de la Rivière", 7, 9);
+		Station s6 = new Station("Quai de la Riviere", 7, 9);
 		Station s7 = new Station("Porte Ouest", 0, 8);
-		Station s8 = new Station("Hôpital", 11, 6);
+		Station s8 = new Station("Hopital", 11, 6);
 		Station s9 = new Station("Parc Botanique", 12, 4);
-		Station s10 = new Station("Hôtel de Ville", 15, 6);
+		Station s10 = new Station("Hotel de Ville", 15, 6);
 		Station s11 = new Station("Porte Sud", 16, 0);
 		
 		//les trajets
@@ -131,7 +131,7 @@ public class SomeTests {
 		tramA6.addArret(s4, new Horaire(Horaire.FERIER, 8, 23));
 		tramA6.addArret(s3, new Horaire(Horaire.FERIER, 8, 20));
 		
-		Ligne tramA = new Ligne("A", Ligne.TRAM);
+		Ligne tramA = new Ligne("Tram A", Ligne.TRAM);
 		
 		
 		
@@ -180,7 +180,7 @@ public class SomeTests {
 		tramB6.addArret(s5, new Horaire(Horaire.FERIER, 8, 25));
 		tramB6.addArret(s8, new Horaire(Horaire.FERIER, 8, 23));
 		
-		Ligne tramB = new Ligne("B", Ligne.TRAM);
+		Ligne tramB = new Ligne("Tram B", Ligne.TRAM);
 		tramB.addTrajet(tramB1);
 		tramB.addTrajet(tramB2);
 		tramB.addTrajet(tramB3);
@@ -211,7 +211,7 @@ public class SomeTests {
 		bus14.addArret(s10, new Horaire(Horaire.FERIER, 8, 28));
 		bus14.addArret(s11, new Horaire(Horaire.FERIER, 8, 18));
 		
-		Ligne bus1 = new Ligne("1", Ligne.BUS);
+		Ligne bus1 = new Ligne("Bus 1", Ligne.BUS);
 		bus1.addTrajet(bus11);
 		bus1.addTrajet(bus12);
 		bus1.addTrajet(bus13);
@@ -242,7 +242,7 @@ public class SomeTests {
 		bus24.addArret(s9, new Horaire(Horaire.FERIER, 8, 20));
 		bus24.addArret(s11, new Horaire(Horaire.FERIER, 8, 14));
 		
-		Ligne bus2 = new Ligne("2", Ligne.BUS);
+		Ligne bus2 = new Ligne("Bus 2", Ligne.BUS);
 		bus2.addTrajet(bus21);
 		bus2.addTrajet(bus22);
 		bus2.addTrajet(bus23);
@@ -253,9 +253,9 @@ public class SomeTests {
 		v.addLigne(bus1);
 		v.addLigne(bus2);
 		
-		HashSet<Integer> set = new HashSet<Integer>();
-		set.add(1);
-		set.add(2);
+		HashSet<String> set = new HashSet<String>();
+		set.add(Ligne.BUS);
+		set.add(Ligne.TRAM);
 		
 		Horaire h = new Horaire(Horaire.FERIER, 8, 0);
 		
@@ -263,8 +263,8 @@ public class SomeTests {
 		System.out.println("Creation graphe (recuperation des donnees non comprise) : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
 		temps = System.currentTimeMillis();
-		g.astar("Porte Sud", "Grande Place", h);
-		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
+		g.dijkstra("Porte Sud", "Grande Place", h);
+		System.out.println("Dijkstra : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
 		temps = System.currentTimeMillis();
 		SerializeGrapheTrajet.serialiserGrapheTrajet(g);
@@ -283,11 +283,21 @@ public class SomeTests {
 		System.out.println("Deserialisation : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
 		temps = System.currentTimeMillis();
-		g2.dijkstra("Porte Sud", "Grande Place", h);
-		System.out.println("Dijkstra : "+(System.currentTimeMillis()-temps)+" millisecondes");
+		g2.astar("Porte Sud", "Grande Place", h);
+		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
 		temps = System.currentTimeMillis();
 		g2.astar("Porte Sud", "Grande Place", h);
+		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
+		
+		Horaire h2 = new Horaire(Horaire.FERIER, 8, 34);
+		
+		temps = System.currentTimeMillis();
+		g2.dijkstraArriverA("Porte Sud", "Grande Place", h2);
+		System.out.println("DiskstraArriverA : "+(System.currentTimeMillis()-temps)+" millisecondes");
+		
+		temps = System.currentTimeMillis();
+		g2.astarPenalisant("Porte Sud", "Grande Place", h, "Attente");
 		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
 	}

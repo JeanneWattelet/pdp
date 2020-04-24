@@ -3,18 +3,20 @@ package domain;
 public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 
 	private static final long serialVersionUID = -3259071493169286685L ;
-	private int transport;
+	private String transport;
+	private String nom;
 	private String from;
 	private String to;
 	
-	public ArcTrajet(int transport, String from, String to){
+	public ArcTrajet(String transport, String from, String to, String nom){
 		super();
 		this.transport = transport;
 		this.from = from;
 		this.to = to;
+		this.nom = nom;
 	}
 	
-	public int getTransport() {
+	public String getTransport() {
 		return transport;
 	}
 	
@@ -26,6 +28,10 @@ public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 		return to;
 	}
 
+	public String getNom() {
+		return nom;
+	}
+	
 	public Object getSourceT() {
 		return super.getSource();
 	}
@@ -40,30 +46,12 @@ public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 	
 	@Override
 	public String toString() {
-		String t = "pied";
-		switch(transport) {
-		case 0:
-			t="attente";
-			break;
-		case 1:
-			t="bus";
-			break;
-		case 2:
-			t="tram";
-			break;
-		case 3 :
-			t="metro";
-			break;
-		case 4 :
-			t="bateau";
-			break;
-		}
-		return super.toString()+"& véhicule : "+t;
+		return super.toString()+"& vehicule : "+transport+" ("+nom+")";
 	}
 	
 	@Override
 	public int hashCode() {
-		return super.hashCode()+transport;
+		return super.hashCode()+transport.hashCode();
 	}
 	
 	@Override

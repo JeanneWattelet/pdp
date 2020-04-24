@@ -5,26 +5,26 @@ import java.util.*;
 public class Ligne {
 	private Set<Trajet> trajets;
 	private String nom;
-	private int vehicule;
+	private String vehicule;
 	
 	/*
 	 * Définition des contantes pour les trajets : clarification du code.
 	 * Serait-il plus pratique de créer une classe statique à part pour les transports ?
 	 */
-	public final static int ATTENTE = 0; 
-	public final static int BUS = 1; 
-	public final static int TRAM = 2;
-	public final static int METRO = 3;
-	public final static int BATEAU = 4;
-	public final static int PIED = 5;	
+	public final static String ATTENTE = "Attente"; 
+	public final static String BUS = "Bus"; 
+	public final static String TRAM = "Tram";
+	public final static String METRO = "Metro";
+	public final static String BATEAU = "Bateau";
+	public final static String PIED = "Marche";	
 	
-	public Ligne(String n, int v, Set<Trajet> t) {
+	public Ligne(String n, String v, Set<Trajet> t) {
 		this.trajets = t;
 		this.nom=n;
 		this.vehicule=v;
 	}
 	
-	public Ligne(String n, int v) {
+	public Ligne(String n, String v) {
 		this(n, v, new HashSet<Trajet>());
 	}
 
@@ -36,7 +36,7 @@ public class Ligne {
 		return nom;
 	}
 
-	public int getVehicule() {
+	public String getVehicule() {
 		return vehicule;
 	}
 	
@@ -57,32 +57,14 @@ public class Ligne {
 		return rep;
 	}
 	
-	public String getStringVehicule() {
-		switch(vehicule) {
-			case ATTENTE:
-				return "attente";
-			case BUS:
-				return "bus";
-			case TRAM:
-				return "tram";
-			case METRO :
-				return "metro";
-			case BATEAU :
-				return "bateau";
-			case PIED :
-				return "pied";
-		}
-		return "pied";
-	}
-	
 	@Override
 	public String toString() {
-		return this.getStringVehicule()+" : "+this.nom;
+		return this.getVehicule()+" : "+this.nom;
 	}
 	
 	@Override
 	public int hashCode() {
-		return this.nom.hashCode()+this.vehicule;
+		return this.nom.hashCode()+this.vehicule.hashCode();
 	}
 	
 	@Override

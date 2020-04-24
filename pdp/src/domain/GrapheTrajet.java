@@ -7,12 +7,18 @@ import org.jgrapht.alg.shortestpath.ALTAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.*;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 
 public class GrapheTrajet implements java.io.Serializable{
 	private static final long serialVersionUID = -7760248029679113128L;
 	private SimpleDirectedWeightedGraph<String, ArcTrajet> g;
+	
+	private static int PENALITE = 10;
 	
 	public GrapheTrajet(Set<Ligne> set) {
 		g = new SimpleDirectedWeightedGraph<String, ArcTrajet>(ArcTrajet.class);
@@ -23,7 +29,9 @@ public class GrapheTrajet implements java.io.Serializable{
 		g.addVertex("arrivee");
 	}
 	
-	
+	public GrapheTrajet() {
+		g = new SimpleDirectedWeightedGraph<String, ArcTrajet>(ArcTrajet.class);
+	}
 	
 	/*
 	 * Création d'un nouveau graphe à partir d'un ensemble d'entités du package "Transport"
@@ -90,7 +98,7 @@ public class GrapheTrajet implements java.io.Serializable{
 							sommetA = nommerSommet(stationA, hA);
 							//sommetB = stationB.toString()+horaireB.toString();
 							sommetB = nommerSommet(stationB, hB);
-							addWeightedEdge(sommetA, sommetB, hA.tempsEntre(hB), l.getVehicule());//ajout des sommets
+							addWeightedEdge(sommetA, sommetB, hA.tempsEntre(hB), l.getVehicule(), l.getNom());//ajout des sommets
 						}
 					}
 				}
@@ -138,7 +146,7 @@ public class GrapheTrajet implements java.io.Serializable{
 								sommetA = nommerSommet(stationA, horaireA);
 								//sommetB = stationB.toString()+horaireB.toString();
 								sommetB = nommerSommet(stationB, horaireB);
-								addWeightedEdge(sommetA, sommetB, horaireA.tempsEntre(horaireB), 0);
+								addWeightedEdge(sommetA, sommetB, horaireA.tempsEntre(horaireB), Ligne.ATTENTE, "attente");
 							}
 						}
 					}
@@ -188,39 +196,39 @@ public class GrapheTrajet implements java.io.Serializable{
 	 * Utile à la fois à la création du graphe et lors de la résolution du plus court chemin
 	 */
 	
-	public void addWeightedEdge(String v1, String v2, int weight, int vehicule) {
+	public void addWeightedEdge(String v1, String v2, int weight, String vehicule, String nom) {
 		if(!v1.contains(v2)) {
-			ArcTrajet arc = new ArcTrajet(vehicule, denommer(v1), denommer(v2));
+			ArcTrajet arc = new ArcTrajet(vehicule, denommer(v1), denommer(v2), nom);
 			g.addEdge(v1, v2, arc);
 			g.setEdgeWeight(v1, v2, weight);
 		}
 	}
 	
-	public void ajouterDepart(String from, Horaire h) {
-		Iterator<String> i = g.vertexSet().iterator();
+	public void ajouterDepart(String from, Horaire h, GrapheTrajet gr) {
+		Iterator<String> i = gr.g.vertexSet().iterator();
 		String vertex;
 		while(i.hasNext()) {
 			vertex = i.next();
 			if(denommer(vertex).equals(from)&&h.estAvant(trouverHoraire(vertex))) {
-				addWeightedEdge("depart", vertex, 0, Ligne.ATTENTE);
+				addWeightedEdge("depart", vertex, 0, Ligne.ATTENTE, "attente");
 			}
 		}
 	}
 	
-	public void ajouterArrivee(String to) {
-		Iterator<String> i = g.vertexSet().iterator();
+	public void ajouterArrivee(String to, GrapheTrajet gr) {
+		Iterator<String> i = gr.g.vertexSet().iterator();
 		String vertex;
 		while(i.hasNext()) {
 			vertex = i.next();
 			if(denommer(vertex).equals(to)) {
-				addWeightedEdge(vertex, "arrivee", 0, Ligne.ATTENTE);
+				addWeightedEdge(vertex, "arrivee", 0, Ligne.ATTENTE, "attente");
 			}
 		}
 	}
 
-	public void retirerArcsDepartArrivee() {
-		Set<ArcTrajet> dep = g.edgesOf("depart");
-		Set<ArcTrajet> arr = g.edgesOf("arrivee");
+	public void retirerArcsDepartArrivee(GrapheTrajet gr) {
+		Set<ArcTrajet> dep = gr.g.edgesOf("depart");
+		Set<ArcTrajet> arr = gr.g.edgesOf("arrivee");
 		
 		Iterator<ArcTrajet> i = dep.iterator();
 		Iterator<ArcTrajet> j = arr.iterator();
@@ -230,14 +238,14 @@ public class GrapheTrajet implements java.io.Serializable{
 		while(i.hasNext()) {
 			arc = i.next();
 			if(arc.getSourceT().equals("depart")) {
-				g.removeEdge(arc);
+				gr.g.removeEdge(arc);
 			}
 		}
 		
 		while(j.hasNext()) {
 			arc = j.next();
 			if(arc.getTargetT().equals("arrivee")) {
-				g.removeEdge(arc);
+				gr.g.removeEdge(arc);
 			}
 		}
 	}
@@ -247,44 +255,362 @@ public class GrapheTrajet implements java.io.Serializable{
 	 */
 	
 	
-	public List<ArcTrajet> astar(String from, String to, Horaire h) {
+public List<ArcTrajet> astar(String from, String to, Horaire h) {
 		
+		GrapheTrajet gr = filtrerGraphe();
 		
-		AStarShortestPath<String, ArcTrajet> astar = new AStarShortestPath<String, ArcTrajet>(this.g, new ALTAdmissibleHeuristic<String, ArcTrajet>(g,g.vertexSet()));
+		ajouterDepart(from, h, gr);
+		ajouterArrivee(to, gr);
 		
-		ajouterDepart(from, h);
-		ajouterArrivee(to);
-		
-		System.out.println(g.toString());
+		AStarShortestPath<String, ArcTrajet> astar = new AStarShortestPath<String, ArcTrajet>(gr.g, new ALTAdmissibleHeuristic<String, ArcTrajet>(gr.g,gr.g.vertexSet()));
 		
 		GraphPath<String, ArcTrajet> itineraire = astar.getPath("depart", "arrivee");
-		
-		System.out.println("Shortest Path : "+itineraire.getEdgeList());
-        System.out.println("Weight of this path : "+itineraire.getWeight());
-        System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
         
-        retirerArcsDepartArrivee();
-        
-        return itineraire.getEdgeList();
+        retirerArcsDepartArrivee(gr);
+        try {
+        	System.out.println("Shortest Path : "+itineraire.getEdgeList());
+            System.out.println("Weight of this path : "+itineraire.getWeight());
+            System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
+        	return itineraire.getEdgeList();
+        }catch(java.lang.NullPointerException e){
+        	System.out.println("Aucun itineraire correspondant.");
+        	ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
+        	return liste;
+        }
 	}
 	
 	public List<ArcTrajet> dijkstra(String from, String to, Horaire h) {
-		DijkstraShortestPath<String, ArcTrajet> dijkstra = new DijkstraShortestPath<String, ArcTrajet>(this.g);
+		GrapheTrajet gr = filtrerGraphe();
 		
-		ajouterDepart(from, h);
-		ajouterArrivee(to);
+		ajouterDepart(from, h, gr);
+		ajouterArrivee(to, gr);
+		
+		DijkstraShortestPath<String, ArcTrajet> dijkstra = new DijkstraShortestPath<String, ArcTrajet>(gr.g);
 		
 		GraphPath<String, ArcTrajet> itineraire = dijkstra.getPath("depart", "arrivee");
 		
-		System.out.println("Shortest Path : "+itineraire.getEdgeList());
-        System.out.println("Weight of this path : "+itineraire.getWeight());
-        System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
-        
-        retirerArcsDepartArrivee();
-        
-        return itineraire.getEdgeList();
+        retirerArcsDepartArrivee(gr);
+        try {
+        	System.out.println("Shortest Path : "+itineraire.getEdgeList());
+            System.out.println("Weight of this path : "+itineraire.getWeight());
+            System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
+        	return itineraire.getEdgeList();
+        }catch(java.lang.NullPointerException e){
+        	System.out.println("Aucun itineraire correspondant.");
+        	ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
+        	return liste;
+        }
 	}
 	
+	/*
+	 * Fonctionnalitées suppélementaires : Arriver A
+	 */
+	
+	public void ajouterDepartArriverA(String from, GrapheTrajet gr) {
+		Iterator<String> i = gr.g.vertexSet().iterator();
+		String vertex;
+		while(i.hasNext()) {
+			vertex = i.next();
+			if(denommer(vertex).equals(from)) {
+				addWeightedEdge("depart", vertex, 0, Ligne.ATTENTE, "attente");
+			}
+		}
+	}
+	
+	public void ajouterArriveeArriverA(String to, Horaire h, GrapheTrajet gr) {
+		Iterator<String> i = gr.g.vertexSet().iterator();
+		String vertex;
+		while(i.hasNext()) {
+			vertex = i.next();
+			if(denommer(vertex).equals(to)&&trouverHoraire(vertex).estAvant(h)) {
+				addWeightedEdge(vertex, "arrivee", 0, Ligne.ATTENTE, "attente");
+
+			}
+		}
+	}
+	
+	public List<ArcTrajet> dijkstraArriverA(String from, String to, Horaire h) {
+		GrapheTrajet gr = filtrerGraphe();
+		
+		ajouterDepartArriverA(from, gr);
+		ajouterArriveeArriverA(to, h, gr);
+		
+		DijkstraShortestPath<String, ArcTrajet> dijkstra = new DijkstraShortestPath<String, ArcTrajet>(gr.g);
+		
+		GraphPath<String, ArcTrajet> itineraire = dijkstra.getPath("depart", "arrivee");
+		
+        retirerArcsDepartArrivee(gr);
+        
+        try {
+        	System.out.println("Shortest Path : "+itineraire.getEdgeList());
+            System.out.println("Weight of this path : "+itineraire.getWeight());
+            System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
+        	return itineraire.getEdgeList();
+        }catch(java.lang.NullPointerException e){
+        	System.out.println("Aucun itineraire correspondant.");
+        	ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
+        	return liste;
+        }
+	}
+	
+public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
+		
+		GrapheTrajet gr = filtrerGraphe();
+		
+		ajouterDepartArriverA(from, gr);
+		ajouterArriveeArriverA(to, h, gr);
+		
+		AStarShortestPath<String, ArcTrajet> astar = new AStarShortestPath<String, ArcTrajet>(gr.g, new ALTAdmissibleHeuristic<String, ArcTrajet>(gr.g,gr.g.vertexSet()));
+		
+		GraphPath<String, ArcTrajet> itineraire = astar.getPath("depart", "arrivee");
+        
+        retirerArcsDepartArrivee(gr);
+        try {
+        	System.out.println("Shortest Path : "+itineraire.getEdgeList());
+            System.out.println("Weight of this path : "+itineraire.getWeight());
+            System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
+        	return itineraire.getEdgeList();
+        }catch(java.lang.NullPointerException e){
+        	System.out.println("Aucun itineraire correspondant.");
+        	ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
+        	return liste;
+        }
+	}
+
+	/*
+	 * Fonctionnalitées suppélementaires : éviter tel trajet
+	 */
+
+	GrapheTrajet filtrerGraphe() {
+		return filtrerGraphe(this);
+	}
+	
+	GrapheTrajet filtrerGraphe(String p) {
+		return filtrerGraphe(p, this);
+	}
+
+	GrapheTrajet filtrerGraphe(GrapheTrajet g) {
+		GrapheTrajet h = new GrapheTrajet();
+		String line;
+		HashSet<String> tabouLigne = new HashSet<String>();
+		HashSet<String> tabouTransport = new HashSet<String>();
+		try {
+			BufferedReader in = new BufferedReader(new FileReader("FICHIER.txt"));
+			while(in.ready()) {
+				line = in.readLine();
+				switch(line){
+				case "Tram" :
+					tabouTransport.add(Ligne.TRAM);
+					break;
+				case "Marche" :
+					tabouTransport.add(Ligne.PIED);
+					break;
+				case "Bus" :
+					tabouTransport.add(Ligne.BUS);
+					break;
+				case "Attente" :
+					tabouTransport.add(Ligne.ATTENTE);
+					break;	
+				case "Metro" :
+					tabouTransport.add(Ligne.METRO);
+					break;
+				case "Bateau" :
+					tabouTransport.add(Ligne.BATEAU);
+					break;
+				default :
+					tabouLigne.add(line);
+				}
+				
+			}
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(tabouLigne.isEmpty()&&tabouTransport.isEmpty()) {
+			return this;
+		}
+		Set<String> sommets = g.g.vertexSet();
+		Iterator<String> iterSommets = sommets.iterator();
+		String s;
+		while(iterSommets.hasNext()) {
+			s = iterSommets.next();
+			h.g.addVertex(s);
+		}
+		Iterator<ArcTrajet> iterArcs = g.g.edgeSet().iterator();
+		ArcTrajet arc;
+		while(iterArcs.hasNext()) {
+			arc = iterArcs.next();
+			if(!tabouTransport.contains(arc.getTransport())&&!tabouLigne.contains(arc.getNom())) {
+				h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT(), arc.getTransport(), arc.getNom());
+				//System.out.println((String)arc.getSourceT()+" "+(String)arc.getTargetT()+" "+(int)arc.getWeightT()+" "+arc.getTransport()+" "+arc.getNom());
+			}
+		}
+		return h;
+	}
+	
+	GrapheTrajet filtrerGraphe(String penalite, GrapheTrajet g) {
+		GrapheTrajet h = new GrapheTrajet();
+		String line;
+		HashSet<String> tabouLigne = new HashSet<String>();
+		HashSet<String> tabouTransport = new HashSet<String>();
+		try {
+			BufferedReader in = new BufferedReader(new FileReader("FICHIER.txt"));
+			while(in.ready()) {
+				line = in.readLine();
+				switch(line){
+				case "Tram" :
+					tabouTransport.add(Ligne.TRAM);
+					break;
+				case "Marche" :
+					tabouTransport.add(Ligne.PIED);
+					break;
+				case "Bus" :
+					tabouTransport.add(Ligne.BUS);
+					break;
+				case "Attente" :
+					tabouTransport.add(Ligne.ATTENTE);
+					break;	
+				case "Metro" :
+					tabouTransport.add(Ligne.METRO);
+					break;
+				case "Bateau" :
+					tabouTransport.add(Ligne.BATEAU);
+					break;
+				default :
+					tabouLigne.add(line);
+				}
+				
+			}
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(tabouLigne.isEmpty()&&tabouTransport.isEmpty()) {
+			return this;
+		}
+		Set<String> sommets = g.g.vertexSet();
+		Iterator<String> iterSommets = sommets.iterator();
+		String s;
+		while(iterSommets.hasNext()) {
+			s = iterSommets.next();
+			h.g.addVertex(s);
+		}
+		Iterator<ArcTrajet> iterArcs = g.g.edgeSet().iterator();
+		ArcTrajet arc;
+		while(iterArcs.hasNext()) {
+			arc = iterArcs.next();
+			if(!tabouTransport.contains(arc.getTransport())&&!tabouLigne.contains(arc.getNom())) {
+				if(arc.getTransport().equals(penalite))
+					h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT()+PENALITE, arc.getTransport(), arc.getNom());
+				else
+					h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT(), arc.getTransport(), arc.getNom());
+			}
+		}
+		return h;
+	}
+	
+	/*
+	 * Fonctionnalité supplémentaire : pénaliser un moyen de transport
+	 */
+	
+	public List<ArcTrajet> astarPenalisant(String from, String to, Horaire h, String penalite) {
+
+		GrapheTrajet gr = filtrerGraphe(penalite);
+		
+		ajouterDepart(from, h, gr);
+		ajouterArrivee(to, gr);
+		
+		AStarShortestPath<String, ArcTrajet> astar = new AStarShortestPath<String, ArcTrajet>(gr.g, new ALTAdmissibleHeuristic<String, ArcTrajet>(gr.g,gr.g.vertexSet()));
+		
+		GraphPath<String, ArcTrajet> itineraire = astar.getPath("depart", "arrivee");
+        
+        retirerArcsDepartArrivee(gr);
+        try {
+        	System.out.println("Shortest Path : "+itineraire.getEdgeList());
+            System.out.println("Weight of this path : "+itineraire.getWeight());
+            System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
+        	return itineraire.getEdgeList();
+        }catch(java.lang.NullPointerException e){
+        	System.out.println("Aucun itineraire correspondant.");
+        	ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
+        	return liste;
+        }
+	}
+	
+	public List<ArcTrajet> dijkstraPenalisant(String from, String to, Horaire h, String penalite) {
+		GrapheTrajet gr = filtrerGraphe(penalite);
+		
+		ajouterDepart(from, h, gr);
+		ajouterArrivee(to, gr);
+		
+		DijkstraShortestPath<String, ArcTrajet> dijkstra = new DijkstraShortestPath<String, ArcTrajet>(gr.g);
+		
+		GraphPath<String, ArcTrajet> itineraire = dijkstra.getPath("depart", "arrivee");
+		
+        retirerArcsDepartArrivee(gr);
+        try {
+        	System.out.println("Shortest Path : "+itineraire.getEdgeList());
+            System.out.println("Weight of this path : "+itineraire.getWeight());
+            System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
+        	return itineraire.getEdgeList();
+        }catch(java.lang.NullPointerException e){
+        	System.out.println("Aucun itineraire correspondant.");
+        	ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
+        	return liste;
+        }
+	}
+	
+	public List<ArcTrajet> dijkstraArriverAPenalisant(String from, String to, Horaire h, String p) {
+		GrapheTrajet gr = filtrerGraphe(p);
+		
+		ajouterDepartArriverA(from, gr);
+		ajouterArriveeArriverA(to, h, gr);
+		
+		DijkstraShortestPath<String, ArcTrajet> dijkstra = new DijkstraShortestPath<String, ArcTrajet>(gr.g);
+		
+		GraphPath<String, ArcTrajet> itineraire = dijkstra.getPath("depart", "arrivee");
+		
+        retirerArcsDepartArrivee(gr);
+        
+        try {
+        	System.out.println("Shortest Path : "+itineraire.getEdgeList());
+            System.out.println("Weight of this path : "+itineraire.getWeight());
+            System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
+        	return itineraire.getEdgeList();
+        }catch(java.lang.NullPointerException e){
+        	System.out.println("Aucun itineraire correspondant.");
+        	ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
+        	return liste;
+        }
+	}
+	
+public List<ArcTrajet> astarArriverAPenalisant(String from, String to, Horaire h, String p) {
+		
+		GrapheTrajet gr = filtrerGraphe(p);
+		
+		ajouterDepartArriverA(from, gr);
+		ajouterArriveeArriverA(to, h, gr);
+		
+		AStarShortestPath<String, ArcTrajet> astar = new AStarShortestPath<String, ArcTrajet>(gr.g, new ALTAdmissibleHeuristic<String, ArcTrajet>(gr.g,gr.g.vertexSet()));
+		
+		GraphPath<String, ArcTrajet> itineraire = astar.getPath("depart", "arrivee");
+        
+        retirerArcsDepartArrivee(gr);
+        try {
+        	System.out.println("Shortest Path : "+itineraire.getEdgeList());
+            System.out.println("Weight of this path : "+itineraire.getWeight());
+            System.out.println("Number of means of transportation used : "+(itineraire.getLength()-2));
+        	return itineraire.getEdgeList();
+        }catch(java.lang.NullPointerException e){
+        	System.out.println("Aucun itineraire correspondant.");
+        	ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
+        	return liste;
+        }
+	}
 	/*
 	 * Fonctions de base d'une classe
 	 */
