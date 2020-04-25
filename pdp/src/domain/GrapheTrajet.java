@@ -34,9 +34,9 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 	/*
-	 * Création d'un nouveau graphe à partir d'un ensemble d'entités du package "Transport"
-	 * (Cette partie est utile avant la sérialisation du graphe)
-	 * (Une fois que celui-ci est créé, ces fonctions ne sont plus utiles pour la résolution)
+	 * CrÃ©ation d'un nouveau graphe Ã  partir d'un ensemble d'entitÃ©s du package "Transport"
+	 * (Cette partie est utile avant la sÃ©rialisation du graphe)
+	 * (Une fois que celui-ci est crÃ©Ã©, ces fonctions ne sont plus utiles pour la rÃ©solution)
 	 */
 	
 	public void ajouterSommets(Set<Ligne> lignes) {
@@ -86,7 +86,7 @@ public class GrapheTrajet implements java.io.Serializable{
 				Map<Station, Horaire> arrets = t.getArrets();
 				Set<Station> stations = arrets.keySet();
 				Iterator<Station> iterStationsA = stations.iterator();
-				while(iterStationsA.hasNext()) {//On regarde chaque station par lequel le trajet passe, qui pourraient Ãªtre une source d'un arc
+				while(iterStationsA.hasNext()) {//On regarde chaque station par lequel le trajet passe, qui pourraient ÃƒÂªtre une source d'un arc
 					stationA = iterStationsA.next();
 					hA = arrets.get(stationA);
 					Iterator<Station> iterStationsB = stations.iterator();//La station B est la cible de l'arc
@@ -192,8 +192,8 @@ public class GrapheTrajet implements java.io.Serializable{
 	
 	
 	/*
-	 * Fonction d'ajout d'un arc valué.
-	 * Utile à la fois à la création du graphe et lors de la résolution du plus court chemin
+	 * Fonction d'ajout d'un arc valuÃ©.
+	 * Utile Ã  la fois Ã  la crÃ©ation du graphe et lors de la rÃ©solution du plus court chemin
 	 */
 	
 	public void addWeightedEdge(String v1, String v2, int weight, String vehicule, String nom) {
@@ -251,7 +251,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 	/*
-	 * Algos de résolution (A* et Dijkstra
+	 * Algos de rÃ©solution (A* et Dijkstra
 	 */
 	
 	
@@ -303,7 +303,7 @@ public List<ArcTrajet> astar(String from, String to, Horaire h) {
 	}
 	
 	/*
-	 * Fonctionnalitées suppélementaires : Arriver A
+	 * FonctionnalitÃ©es suppÃ©lementaires : Arriver A
 	 */
 	
 	public void ajouterDepartArriverA(String from, GrapheTrajet gr) {
@@ -378,7 +378,7 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 	}
 
 	/*
-	 * Fonctionnalitées suppélementaires : éviter tel trajet
+	 * FonctionnalitÃ©es suppÃ©lementaires : Ã©viter tel trajet
 	 */
 
 	GrapheTrajet filtrerGraphe() {
@@ -395,7 +395,7 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 		HashSet<String> tabouLigne = new HashSet<String>();
 		HashSet<String> tabouTransport = new HashSet<String>();
 		try {
-			BufferedReader in = new BufferedReader(new FileReader("FICHIER.txt"));
+			BufferedReader in = new BufferedReader(new FileReader("src/saves/perturbations.txt"));
 			while(in.ready()) {
 				line = in.readLine();
 				switch(line){
@@ -514,7 +514,7 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 	}
 	
 	/*
-	 * Fonctionnalité supplémentaire : pénaliser un moyen de transport
+	 * FonctionnalitÃ© supplÃ©mentaire : pÃ©naliser un moyen de transport
 	 */
 	
 	public List<ArcTrajet> astarPenalisant(String from, String to, Horaire h, String penalite) {
