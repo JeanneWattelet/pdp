@@ -1,10 +1,7 @@
 package Transport;
 
-public class Coordonnees implements java.io.Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class Coordonnees{
+	
 	private float x;
 	private float y;
 	
