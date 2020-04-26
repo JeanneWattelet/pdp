@@ -1,11 +1,8 @@
 package Transport;
 import java.util.*;
 
-public class Trajet implements java.io.Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class Trajet {
+	
 	private Map<Station, Horaire> arrets;
 	private String id;
 	private String direction ;
