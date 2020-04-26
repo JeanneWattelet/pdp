@@ -1,11 +1,8 @@
 package Transport;
 import java.util.*;
 
-public class Ligne implements java.io.Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class Ligne {
+	
 	private String id;
 	private String nom;
 	private int vehicule;
