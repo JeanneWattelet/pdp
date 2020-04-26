@@ -2,11 +2,7 @@ package Transport;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Calendrier implements java.io.Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class Calendrier {
 
 	private String service_id;
 	private List<Integer> semaine;
