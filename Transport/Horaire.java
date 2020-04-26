@@ -1,9 +1,6 @@
 package Transport;
-public class Horaire implements java.io.Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class Horaire {
+	
 	private int jour;
 	private int heure;
 	private int minute;
@@ -41,7 +38,7 @@ public class Horaire implements java.io.Serializable{
 	}
 
 	public int tempsEntre(Horaire horaire) {
-		int res=0; // on convertit tout en seconde et on renvoie la différence
+		int res=0; // on convertit tout en seconde et on renvoie la diffÃ©rence
 		if(this.estAvant(horaire)) { //
 			res += ( 3600*horaire.getHeure()+60*horaire.getMinute()+horaire.getSeconde() )
 					- ( 3600*this.heure+60*this.minute+this.seconde) ;
