@@ -180,7 +180,7 @@ public class GrapheTrajet implements java.io.Serializable{
 		return s;
 	}
 	
-	private Horaire trouverHoraire(String s) {
+	public Horaire trouverHoraire(String s) {
 
 		int j=0,h=0,m=0,sec=0;
 		if(s.contains("%")) {
@@ -207,7 +207,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	 * Utile à la fois à la création du graphe et lors de la résolution du plus court chemin
 	 */
 	
-	public ArcTrajet addWeightedEdge(String v1, String v2, double weight, String vehicule, String nom) {
+	private ArcTrajet addWeightedEdge(String v1, String v2, double weight, String vehicule, String nom) {
 		ArcTrajet arc = new ArcTrajet(vehicule, denommer(v1), denommer(v2), nom);
 		if(!v1.contains(v2)) {
 			g.addEdge(v1, v2, arc);
@@ -216,7 +216,7 @@ public class GrapheTrajet implements java.io.Serializable{
 		return arc;
 	}
 	
-	public void ajouterDepart(String from, Horaire h, GrapheTrajet gr) {
+	private void ajouterDepart(String from, Horaire h, GrapheTrajet gr) {
 		Iterator<String> i = gr.g.vertexSet().iterator();
 		String vertex;
 		while(i.hasNext()) {
@@ -227,7 +227,7 @@ public class GrapheTrajet implements java.io.Serializable{
 		}
 	}
 	
-	public void ajouterArrivee(String to, GrapheTrajet gr) {
+	private void ajouterArrivee(String to, GrapheTrajet gr) {
 		Iterator<String> i = gr.g.vertexSet().iterator();
 		String vertex;
 		while(i.hasNext()) {
@@ -238,7 +238,7 @@ public class GrapheTrajet implements java.io.Serializable{
 		}
 	}
 
-	public void retirerArcsDepartArrivee(GrapheTrajet gr) {
+	private void retirerArcsDepartArrivee(GrapheTrajet gr) {
 		Set<ArcTrajet> dep = gr.g.edgesOf("depart");
 		Set<ArcTrajet> arr = gr.g.edgesOf("arrivee");
 		
@@ -318,7 +318,7 @@ public List<ArcTrajet> astar(String from, String to, Horaire h) {
 	 * Fonctionnalitées suppélementaires : Arriver A
 	 */
 	
-	public void ajouterDepartArriverA(String from, GrapheTrajet gr) {
+	private void ajouterDepartArriverA(String from, GrapheTrajet gr) {
 		Iterator<String> i = gr.g.vertexSet().iterator();
 		String vertex;
 		while(i.hasNext()) {
@@ -329,7 +329,7 @@ public List<ArcTrajet> astar(String from, String to, Horaire h) {
 		}
 	}
 	
-	public void ajouterArriveeArriverA(String to, Horaire h, GrapheTrajet gr) {
+	private void ajouterArriveeArriverA(String to, Horaire h, GrapheTrajet gr) {
 		Iterator<String> i = gr.g.vertexSet().iterator();
 		String vertex;
 		while(i.hasNext()) {
@@ -393,15 +393,15 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 	 * Fonctionnalitées suppélementaires : éviter tel trajet
 	 */
 
-	GrapheTrajet filtrerGraphe() {
+	private GrapheTrajet filtrerGraphe() {
 		return filtrerGraphe(this);
 	}
 	
-	GrapheTrajet filtrerGraphe(String p) {
+	private GrapheTrajet filtrerGraphe(String p) {
 		return filtrerGraphe(p, this);
 	}
 
-	GrapheTrajet filtrerGraphe(GrapheTrajet g) {
+	private GrapheTrajet filtrerGraphe(GrapheTrajet g) {
 		GrapheTrajet h = new GrapheTrajet();
 		String line;
 		HashSet<String> tabouLigne = new HashSet<String>();
@@ -462,7 +462,7 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 		return h;
 	}
 	
-	GrapheTrajet filtrerGraphe(String penalite, GrapheTrajet g) {
+	private GrapheTrajet filtrerGraphe(String penalite, GrapheTrajet g) {
 		GrapheTrajet h = new GrapheTrajet();
 		String line;
 		HashSet<String> tabouLigne = new HashSet<String>();
@@ -529,7 +529,7 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 	 * Fonctionnalité supplémentaire : pénaliser un moyen de transport
 	 */
 	
-	List<ArcTrajet> depenaliser(GrapheTrajet gr, List<ArcTrajet> l, String p){
+	private List<ArcTrajet> depenaliser(GrapheTrajet gr, List<ArcTrajet> l, String p){
 		ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
 		for(ArcTrajet arc : l) {
 			if(arc.getTransport()==p) {
