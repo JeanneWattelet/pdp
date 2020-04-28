@@ -23,20 +23,14 @@ public class Carte {
 		lignes.add(l);
 	}
 	
-	public Set<Ligne> getTrajets(Horaire h, Set<String> v) {
-		Set<Ligne> rep = new HashSet<Ligne>();
-		Iterator<String> i = v.iterator();
-		Ligne l;
-		String mdt;
-		while(i.hasNext()) {
-			mdt=i.next();
-			Iterator<Ligne> j = lignes.iterator();
-			while(j.hasNext()) {
-				Set<Trajet> traj = new HashSet<Trajet>();
-				l=j.next();
-				if(l.getVehicule()==mdt)
+	public List<Ligne> getTrajets(Horaire h, Set<String> v) {
+		List<Ligne> rep = new ArrayList<Ligne>();
+		for(String vehicule: v) {
+			for(Ligne l: lignes) {
+				List<Trajet> traj = new ArrayList<Trajet>();
+				if(l.getVehicule() == vehicule)
 					traj.addAll(l.getTrajetsAfter(h));
-				rep.add(new Ligne(l.getNom(), l.getVehicule(),traj));
+				rep.add(new Ligne(l.getId(), l.getNom(), l.getVehicule(),traj));
 			}
 		}
 		return rep;

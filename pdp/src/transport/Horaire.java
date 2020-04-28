@@ -1,70 +1,74 @@
 package transport;
 
 public class Horaire {
-	private String jour;
+	private int jour;
 	private int heure;
 	private int minute;
+	private int seconde;
 	
 	/*
 	 * Définition des contantes pour les trajets : clarification du code.
 	 * Serait-il plus pratique de créer une classe statique à part pour les jours ?
 	 */
-	public final static String LUNDI = "Lundi"; 
-	public final static String MARDI = "Mardi"; 
-	public final static String MERCREDI = "Mercredi";
-	public final static String JEUDI = "Jeudi";
-	public final static String VENDREDI = "Vendredi";
-	public final static String SAMEDI = "Samedi";
-	public final static String DIMANCHE = "Dimanche";
-	public final static String FERIER = "Ferier";
+	public final static int LUNDI = 1; 
+	public final static int MARDI = 2; 
+	public final static int MERCREDI = 3;
+	public final static int JEUDI = 4;
+	public final static int VENDREDI = 5;
+	public final static int SAMEDI = 6;
+	public final static int DIMANCHE = 7;
+	public final static int FERIER = 8;
 	
-	public Horaire(String j, int h, int m) {
+	public Horaire(int j, int h, int m, int seconde) {
 		jour=j;
 		heure = h;
 		minute = m;
+		this.seconde = seconde ;
 	}
 	
-	public String getJour() {
+	public int getJour() {
 		return jour;
 	}
-	
+
 	public int getHeure() {
 		return heure;
 	}
-	
+
 	public int getMinute() {
 		return minute;
 	}
-	
-	public boolean estAvant(Horaire h) {
-		if(this.heure>h.heure)
-			return false;
-		if((this.heure>4)&&(h.heure<4)) {
-			//changement theorique de jour entre this et h
-		}else {
-			if(this.heure>h.getHeure()) {
-				return false;
-			}
-		}
-		if(this.minute>h.minute)
-			return false;
-		return true;
+
+	public int getSeconde() {
+		return seconde;
 	}
-	
+
+	public boolean estAvant(Horaire h) {
+		if(this.jour != h.getJour() )
+			return false;
+		if(this.heure*3600+this.minute*60+this.seconde < h.getHeure()*3600+h.getMinute()*60+h.getSeconde())
+			return true;
+		return false;
+	}
+
 	public int tempsEntre(Horaire horaire) {
-		int res=0;
-		if(this.heure>horaire.getHeure()) {//S'il se passe un jour entre maintenant et l'horaire d'arrivee. Nous supposons que les autres fonctions ont deja verifie que l'utilisateur ne met pas plus de deux jours a traverser une ville
-			res+=60*(23-this.heure)+horaire.getHeure();//heure jusqu'a minuit puis heure depuis minuit
-			res+=60-this.minute+horaire.getMinute();//idem minutes
+		int res=0; // on convertit tout en seconde et on renvoie la différence
+		if(this.estAvant(horaire)) { //
+			res += ( 3600*horaire.getHeure()+60*horaire.getMinute()+horaire.getSeconde() )
+					- ( 3600*this.heure+60*this.minute+this.seconde) ;
+
+		}else if(horaire.estAvant(this)){
+			res += ( 3600*this.heure+60*horaire.minute+horaire.seconde )
+					- ( 3600*this.heure+60*this.minute+this.seconde) ;
+		}else if(this.equals(horaire) ){
+			res += 0; // s'ils sont eguaux (pas possble dans notre cas)
 		}else {
-			res+=60*(horaire.getHeure()-this.heure);//On compte l'heure deja commencee comme complete
-			res+=horaire.getMinute()-this.minute;//on soustrait les minutes deja passees si besoin
+			res += Integer.MAX_VALUE; //si c'est pas le meme jour on renvoie une valeur enorme;
 		}
 		return res;
 	}
 	
-	public String getStringJour() {
-		switch(jour) {
+	public static String getStringJour(int j) {
+		switch(j) {
 			case LUNDI :
 				return "Lundi";
 			case MARDI :
@@ -85,14 +89,36 @@ public class Horaire {
 		return "Jour ferier";
 	}
 	
+	public static int stringToIntDate(String j) {
+		switch(j) {
+		case "Lundi" :
+			return LUNDI;
+		case "Mardi":
+			return MARDI;
+		case "Mercredi" :
+			return MERCREDI;
+		case "Jeudi" :
+			return JEUDI;
+		case "Vendredi" :
+			return VENDREDI;
+		case "Samedi" :
+			return SAMEDI;
+		case "Dimanche" :
+			return DIMANCHE;
+		case "Ferier" :
+			return FERIER;
+	}
+	return FERIER;
+}
+	
 	@Override
 	public String toString() {
-		return this.getStringJour()+" "+this.heure+":"+this.minute;
+		return this.jour+":"+this.heure+":"+this.minute+":"+this.seconde;
 	}
 	
 	@Override
 	public int hashCode() {
-		return this.jour.hashCode()+this.heure*100+this.minute;
+		return this.jour*10000+this.heure*100+this.minute;
 	}
 	
 	@Override

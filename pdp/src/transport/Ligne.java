@@ -3,7 +3,8 @@ package transport;
 import java.util.*;
 
 public class Ligne {
-	private Set<Trajet> trajets;
+	private String id;
+	private List<Trajet> trajets;
 	private String nom;
 	private String vehicule;
 	
@@ -17,21 +18,27 @@ public class Ligne {
 	public final static String METRO = "Metro";
 	public final static String BATEAU = "Bateau";
 	public final static String PIED = "Marche";	
+	public final static String TRAIN = "Train";	
 	
-	public Ligne(String n, String v, Set<Trajet> t) {
+	public Ligne(String i, String n, String v, List<Trajet> t) {
+		this.id = i;
 		this.trajets = t;
 		this.nom=n;
 		this.vehicule=v;
 	}
 	
-	public Ligne(String n, String v) {
-		this(n, v, new HashSet<Trajet>());
+	public Ligne(String i, String n, String v) {
+		this(i, n, v, new ArrayList<Trajet>());
 	}
 
-	public Set<Trajet> getTrajets() {
+	public List<Trajet> getTrajets() {
 		return trajets;
 	}
 
+	public String getId() {
+		return id;
+	}
+	
 	public String getNom() {
 		return nom;
 	}
@@ -44,17 +51,29 @@ public class Ligne {
 		trajets.add(t);
 	}
 	
-	public Set<Trajet> getTrajetsAfter(Horaire h) {
-		Set<Trajet> rep = new HashSet<Trajet>();
-		Iterator<Trajet> i = trajets.iterator();
-		Trajet t;
-		int cpt=0;
-		while(i.hasNext()) {
-			cpt++;
-			t=i.next();
-			rep.add(new Trajet(this.toString()+h.toString()+cpt, t.getArretsAfter(h)));
-		}
+	public List<Trajet> getTrajetsAfter(Horaire h) {
+		List<Trajet> rep = new ArrayList<Trajet>();
+		for(Trajet t: trajets)
+			rep.add(new Trajet( t.getId(), t.getArretsAfter(h), t.getDirection(), t.getCalendrier())); 
 		return rep;
+	}
+	
+	public static String intToStringVehicule(int i) {
+		switch(i) {
+		case 0:
+			return TRAM;
+		case 1:
+			return METRO;
+		case 2:
+			return TRAIN;
+		case 3 :
+			return BUS;
+		case 4 :
+			return BATEAU;
+		case 5 :
+			return ATTENTE;
+		}
+		return PIED;
 	}
 	
 	@Override
