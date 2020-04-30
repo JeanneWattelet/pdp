@@ -501,9 +501,6 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 			e.printStackTrace();
 		}
 		
-		if(tabouLigne.isEmpty()&&tabouTransport.isEmpty()) {
-			return this;
-		}
 		Set<String> sommets = g.g.vertexSet();
 		Iterator<String> iterSommets = sommets.iterator();
 		String s;
