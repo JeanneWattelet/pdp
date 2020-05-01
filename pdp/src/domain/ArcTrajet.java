@@ -46,7 +46,7 @@ public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 	
 	@Override
 	public String toString() {
-		return super.toString()+"& vehicule : "+transport+" ("+nom+")";
+		return transport+" ("+nom+") : "+super.toString();
 	}
 	
 	@Override

@@ -43,10 +43,13 @@ public class Horaire {
 	}
 
 	public boolean estAvant(Horaire h) {
-		if(this.jour != h.getJour() )
+		if(this.jour != h.getJour() ) {
 			return false;
-		if(this.heure*3600+this.minute*60+this.seconde < h.getHeure()*3600+h.getMinute()*60+h.getSeconde())
+		}
+			
+		if(this.heure*10000+this.minute*100+this.seconde < h.getHeure()*10000+h.getMinute()*100+h.getSeconde()) {
 			return true;
+		}
 		return false;
 	}
 
@@ -64,7 +67,8 @@ public class Horaire {
 		}else {
 			res += Integer.MAX_VALUE; //si c'est pas le meme jour on renvoie une valeur enorme;
 		}
-		return res;
+		
+		return res>0?res:0-res;
 	}
 	
 	public static String getStringJour(int j) {

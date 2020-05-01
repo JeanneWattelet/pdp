@@ -4,6 +4,11 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.List;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 import transport.*;
 
@@ -19,37 +24,47 @@ public class SomeTests {
 	public static void main(String[] args) {
 		
 		
-		long debut = System.currentTimeMillis(); 
 		
-
-		Donnees recup = new Donnees();
-		List<Ligne> Lignes;
+		long temps = System.currentTimeMillis(); 
+		
+		temps = System.currentTimeMillis();
+		GrapheTrajet g2 = SerializeGrapheTrajet.deserialiserGrapheTrajet(1);
+		System.out.println("Deserialisation : "+(System.currentTimeMillis()-temps)+" millisecondes");
+		
+		//Horaire h = new Horaire(Horaire.VENDREDI, 8, 34, 00);
+		Horaire h2 = new Horaire(Horaire.VENDREDI, 17, 34, 00);
+		/*PrintWriter writer;
 		try {
-			Lignes = recup.ChargerDonnees("src\\GTFS_TEST");
-			
-			GrapheTrajet g = new GrapheTrajet(Lignes);
-			System.out.println("Creation du graphe: "+(double)((System.currentTimeMillis()-debut)/1000)+" secondes");
-			
-			
-			debut = System.currentTimeMillis();
-			SerializeGrapheTrajet.serialiserGrapheTrajet(g);
-			System.out.println("Serialisation : "+(double)((System.currentTimeMillis()-debut))+" secondes");
-			
-			
-			
-			//System.out.println((double)((System.currentTimeMillis()-debut))+" secondes");
-
-			
-			Horaire hor = new Horaire(3, 7, 14,0);
-			g.astar("Tauzia" ,"Cracovie", hor);
-			
-			
-		} catch (IOException e) {
+			writer = new PrintWriter("graphe1.txt","utf8");
+			writer.println(g2);
+			writer.close();
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} // Recuperer les donneees dans lignes 
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("End");*/
 		
+		temps = System.currentTimeMillis();
+		g2.dijkstraArriverA("Stade Musard", "La Belle Rose", h2);
+		System.out.println("Dijkstra : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
-		
+		/*temps = System.currentTimeMillis();
+		g2.astar("Saige", "Belcier", h);
+		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
+			
+		temps = System.currentTimeMillis();
+		g2.astar("Saige", "Belcier", h);
+		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
+			
+		temps = System.currentTimeMillis();
+		g2.dijkstraArriverA("Saige", "Belcier", h2);
+		System.out.println("DiskstraArriverA : "+(System.currentTimeMillis()-temps)+" millisecondes");
+			
+		temps = System.currentTimeMillis();
+		g2.astarPenalisant("Saige", "Belcier", h, "Attente");
+		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");*/
 	}
 }

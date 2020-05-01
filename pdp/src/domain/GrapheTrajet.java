@@ -151,13 +151,13 @@ public class GrapheTrajet implements java.io.Serializable{
 					if((best==0)||(best>horaireA.tempsEntre(horaireB))) {
 						sommetA = nommerSommet(stationA, horaireA);
 						sommetB = nommerSommet(stationB, horaireB);
-						tmp = addWeightedEdge(sommetA, sommetB, horaireA.tempsEntre(horaireB), Ligne.ATTENTE, "attente");
-						System.out.println(sommetA+" to "+sommetB);
 						if(best!=0) {
 							g.removeEdge(arc);
 						}
-						arc=tmp;
 						best = arc.getWeightT();
+						tmp = addWeightedEdge(sommetA, sommetB, horaireA.tempsEntre(horaireB), Ligne.ATTENTE, "attente");
+						System.out.println(sommetA+" to "+sommetB);
+						arc=tmp;
 					}
 				}
 			}
@@ -217,12 +217,20 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 	private void ajouterDepart(String from, Horaire h, GrapheTrajet gr) {
+		ArcTrajet arc = new ArcTrajet("Pied", "Depart", "Arrivee", "Nom");
+		double best=0;
 		Iterator<String> i = gr.g.vertexSet().iterator();
 		String vertex;
 		while(i.hasNext()) {
 			vertex = i.next();
 			if(denommer(vertex).equals(from)&&h.estAvant(trouverHoraire(vertex))) {
-				addWeightedEdge("depart", vertex, 0, Ligne.ATTENTE, "attente");
+				if(best==0||h.tempsEntre(trouverHoraire(vertex))<best) {
+					if(best!=0) {
+						gr.g.removeEdge(arc);
+					}
+					best = h.tempsEntre(trouverHoraire(vertex));
+					arc = gr.addWeightedEdge("depart", vertex, 0, Ligne.ATTENTE, "attente");
+				}		
 			}
 		}
 	}
@@ -233,7 +241,8 @@ public class GrapheTrajet implements java.io.Serializable{
 		while(i.hasNext()) {
 			vertex = i.next();
 			if(denommer(vertex).equals(to)) {
-				addWeightedEdge(vertex, "arrivee", 0, Ligne.ATTENTE, "attente");
+				gr.addWeightedEdge(vertex, "arrivee", 0, Ligne.ATTENTE, "attente");
+				System.out.println("arrivee");
 			}
 		}
 	}
@@ -324,19 +333,28 @@ public List<ArcTrajet> astar(String from, String to, Horaire h) {
 		while(i.hasNext()) {
 			vertex = i.next();
 			if(denommer(vertex).equals(from)) {
-				addWeightedEdge("depart", vertex, 0, Ligne.ATTENTE, "attente");
+				gr.addWeightedEdge("depart", vertex, 0, Ligne.ATTENTE, "attente");
 			}
 		}
 	}
 	
 	private void ajouterArriveeArriverA(String to, Horaire h, GrapheTrajet gr) {
+		ArcTrajet arc = new ArcTrajet("Pied", "Depart", "Arrivee", "Nom");
+		double best=0;
 		Iterator<String> i = gr.g.vertexSet().iterator();
 		String vertex;
 		while(i.hasNext()) {
 			vertex = i.next();
 			if(denommer(vertex).equals(to)&&trouverHoraire(vertex).estAvant(h)) {
-				addWeightedEdge(vertex, "arrivee", 0, Ligne.ATTENTE, "attente");
-
+				if(best==0||trouverHoraire(vertex).tempsEntre(h)<best) {
+					if(best!=0) {
+						gr.g.removeEdge(arc);
+						System.out.println("remove");
+					}
+					best = h.tempsEntre(trouverHoraire(vertex));
+					System.out.println(trouverHoraire(vertex));
+					arc = gr.addWeightedEdge(vertex, "arrivee", 0, Ligne.ATTENTE, "attente");
+				}	
 			}
 		}
 	}
@@ -407,7 +425,7 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 		HashSet<String> tabouLigne = new HashSet<String>();
 		HashSet<String> tabouTransport = new HashSet<String>();
 		try {
-			BufferedReader in = new BufferedReader(new FileReader("FICHIER.txt"));
+			BufferedReader in = new BufferedReader(new FileReader("src/saves/perturbations.txt"));
 			while(in.ready()) {
 				line = in.readLine();
 				switch(line){
