@@ -5,14 +5,10 @@ public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 	private static final long serialVersionUID = -3259071493169286685L ;
 	private String transport;
 	private String nom;
-	private String from;
-	private String to;
 	
 	public ArcTrajet(String transport, String from, String to, String nom){
 		super();
 		this.transport = transport;
-		this.from = from;
-		this.to = to;
 		this.nom = nom;
 	}
 	
@@ -21,23 +17,23 @@ public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 	}
 	
 	public String getFrom() {
-		return from;
+		return GrapheTrajet.denommer((String)super.getSource());
 	}
 	
 	public String getTo() {
-		return to;
+		return GrapheTrajet.denommer((String)super.getTarget());
 	}
 
 	public String getNom() {
 		return nom;
 	}
 	
-	public Object getSourceT() {
-		return super.getSource();
+	public String getSourceT() {
+		return (String) super.getSource();
 	}
 	
-	public Object getTargetT() {
-		return super.getTarget();
+	public String getTargetT() {
+		return (String)super.getTarget();
 	}
 	
 	public double getWeightT() {

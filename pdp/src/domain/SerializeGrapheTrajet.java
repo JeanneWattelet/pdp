@@ -11,14 +11,9 @@ public class SerializeGrapheTrajet {
 	
 	static void serialiserGrapheTrajet(GrapheTrajet gt){
 		ObjectOutputStream oos = null;
-		int jour;
-	
-		System.out.println("Type du jour dont vous voulez donner le graphe :");
-		Scanner sc = new Scanner(System.in);
-	    jour = sc.nextInt();
-
+		
 		try {
-			final FileOutputStream fichier = new FileOutputStream(jour+".ser");
+			final FileOutputStream fichier = new FileOutputStream("src\\saves\\"+gt.getJour()+".ser");
 			oos = new ObjectOutputStream(fichier);
 			oos.writeObject(gt);
 			oos.flush();
@@ -42,7 +37,7 @@ public class SerializeGrapheTrajet {
 		ObjectInputStream ois = null;
 
 	    try {
-	      final FileInputStream fichier = new FileInputStream(jour+".ser");
+	      final FileInputStream fichier = new FileInputStream("src\\saves\\"+jour+".ser");
 	      ois = new ObjectInputStream(fichier);
 	      gt = (GrapheTrajet)ois.readObject() ;
 	    } catch (final java.io.IOException e) {

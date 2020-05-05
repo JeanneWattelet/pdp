@@ -15,7 +15,7 @@ public class Donnees {
 
 	}
 
-	private List<Station> ChargerStations(String chemin) throws IOException{
+	private static List<Station> ChargerStations(String chemin) throws IOException{
 		Path p1 = Paths.get(chemin+"\\stops.txt");
 		BufferedReader read = Files.newBufferedReader(p1);
 
@@ -40,7 +40,7 @@ public class Donnees {
 		return stations;
 	}
 
-	private List<Ligne> ChargerLignes(String chemin) throws IOException {
+	private static List<Ligne> ChargerLignes(String chemin) throws IOException {
 		String ligne;
 		String[] str = null;
 		String id;
@@ -153,7 +153,6 @@ public class Donnees {
 								h = Integer.valueOf(sttr[0]);
 								min = Integer.valueOf(sttr[1]);
 								sec = Integer.valueOf(sttr[2]);
-
 								//Station s = new Station(station_id);//on cree la station pour chaque jour (sinon on pourra pas la "add" dans map car elle prend pas de doublon)
 								//hr = new Horaire(jour, h, min, sec);
 								t.addArret(new Station(station_id), new Horaire(jour, h, min, sec)); 
@@ -180,7 +179,7 @@ public class Donnees {
 		return LignesTrajet ;
 	}
 
-	private void RemplirStations(List<Ligne> lignes, List<Station> stations){
+	private static void RemplirStations(List<Ligne> lignes, List<Station> stations){
 
 		for(Ligne l :lignes) { //remplir les stations a partir du tableau stations (qu'on deja rempli a partir du Path p1)
 			for(Trajet t: l.getTrajets()) {
@@ -196,7 +195,7 @@ public class Donnees {
 			}
 		}
 	}
-	public List<Ligne> ChargerDonnees(String chemin) throws IOException {
+	public static List<Ligne> ChargerDonnees(String chemin) throws IOException {
 
 		List<Station> stations = ChargerStations(chemin); // Recuperer les stations dans stations 
 		System.out.println("Chargement des stations términée");

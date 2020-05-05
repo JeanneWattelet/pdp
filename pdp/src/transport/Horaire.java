@@ -26,6 +26,13 @@ public class Horaire {
 		this.seconde = seconde ;
 	}
 	
+	public Horaire(int h, int m, int seconde) { // ce constructeur est utile pour la creation du Graphe 
+		jour= -1 ; 
+		heure = h;
+		minute = m;
+		this.seconde = seconde ;
+	}
+	
 	public int getJour() {
 		return jour;
 	}
@@ -117,7 +124,7 @@ public class Horaire {
 	
 	@Override
 	public String toString() {
-		return this.jour+":"+this.heure+":"+this.minute+":"+this.seconde;
+		return this.heure+":"+this.minute+":"+this.seconde; //this.jour+":"+
 	}
 	
 	@Override
