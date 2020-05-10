@@ -54,8 +54,10 @@ public class Ligne {
 	public List<Trajet> getTrajetsAfter(Horaire h) {
 		List<Trajet> rep = new ArrayList<Trajet>();
 		for(Trajet t: trajets)
-			rep.add(new Trajet( t.getId(), t.getArretsAfter(h), t.getDirection(), t.getCalendrier())); 
-		return rep;
+			if(!t.getArretsAfter(h).isEmpty()) {//si le trajet s'arrête avant h, alors on ne le prend pas.
+				rep.add(new Trajet( t.getId(), t.getArretsAfter(h), t.getDirection(), t.getCalendrier())); 
+			}
+			return rep;
 	}
 	
 	public static String intToStringVehicule(int i) {
@@ -74,6 +76,24 @@ public class Ligne {
 			return ATTENTE;
 		}
 		return PIED;
+	}
+	
+	public static int stringToIntVehicule(String i) {
+		switch(i) {
+		case TRAM:
+			return 0;
+		case METRO:
+			return 1;
+		case TRAIN:
+			return 2;
+		case BUS :
+			return 3;
+		case BATEAU :
+			return 4;
+		case ATTENTE :
+			return 5;
+		}
+		return 6;
 	}
 	
 	@Override

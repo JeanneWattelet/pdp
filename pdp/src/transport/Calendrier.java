@@ -6,7 +6,6 @@ public class Calendrier {
 
 	private String service_id;
 	private List<Integer> semaine;
-	private int date_debut, date_fin;
 
 	public Calendrier(String service_id) {
 		this.service_id = service_id ;
@@ -18,28 +17,12 @@ public class Calendrier {
 			this.semaine.add(i);
 	}
 
-	public void setDate_debut(Integer date_debut) {
-		this.date_debut = date_debut;
-	}
-
-	public void setDate_fin(int date_fin) {
-		this.date_fin = date_fin;
-	}
-
 	public String getService_id() {
 		return service_id;
 	}
 
 	public List<Integer> getSemaine() {
 		return semaine;
-	}
-
-	public int getDate_debut() {
-		return date_debut;
-	}
-
-	public int getDate_fin() {
-		return date_fin;
 	}
 	
 	@Override
