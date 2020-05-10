@@ -1,7 +1,5 @@
 package domain;
 
-import org.jgrapht.graph.*;
-
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +11,11 @@ public class ChercherChemin {
 	
 	public ChercherChemin() {
 		Date d = new Date();
-		g = SerializeGrapheTrajet.deserialiserGrapheTrajet(trouverJour(d.getDay()-1));
+		//g = SerializeGrapheTrajet.deserialiserGrapheTrajet(trouverJour(d.getDay()-1));
+		g = SerializeGrapheTrajet.deserialiserGrapheTrajet(trouverJour(3));
+		/*
+		 * PENSER A CHANGER LE JOUR PAS DEFAUT !!
+		 */
 	}
 	
 	int trouverJour(int j) {

@@ -1,5 +1,7 @@
 package domain;
 
+import transport.Ligne;
+
 public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 
 	private static final long serialVersionUID = -3259071493169286685L ;
@@ -12,7 +14,28 @@ public class ArcTrajet extends org.jgrapht.graph.DefaultWeightedEdge{
 		this.nom = nom;
 	}
 	
-	public String getTransport() {
+	public ArcTrajet(int transport, String from, String to, String nom){
+		super();
+		this.transport = Ligne.intToStringVehicule(transport);
+		this.nom = nom;
+	}
+	
+	public ArcTrajet(int tra) {
+		super();
+		transport = Ligne.intToStringVehicule(tra);
+	}
+	
+	public ArcTrajet() {
+		super();
+		transport = Ligne.ATTENTE;
+		nom = "";
+	}
+	
+	public int getTransport() {
+		return Ligne.stringToIntVehicule(transport);
+	}
+	
+	public String getTransportString() {
 		return transport;
 	}
 	

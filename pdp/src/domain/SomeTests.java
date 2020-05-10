@@ -23,23 +23,24 @@ public class SomeTests {
 
 	public static void main(String[] args) {
 		
-		String h = "8:34:00";
-		
+
 		long temps = System.currentTimeMillis(); 
 		
 		temps = System.currentTimeMillis();
 		
-		ChercherChemin c = new ChercherChemin();
+		//String h = "8:34:00";
+		 
+		/*ChercherChemin c = new ChercherChemin();
 		
 		c.chercherChemin("Russel", "La Belle Rose", h.toString(), 2, 0, true);
 		
 		System.out.println("Deserialisation : "+(System.currentTimeMillis()-temps)+" millisecondes");
-		
-		
+	
+		*/
 		
 		/*GrapheTrajet g;
 		try {
-			/*System.out.println("Début création 3");
+			System.out.println("Début création 3");
 			g = new GrapheTrajet(3);
 			System.out.println("Creation du graphe 3 : "+(System.currentTimeMillis()-temps)+" millisecondes");
 			
@@ -47,13 +48,14 @@ public class SomeTests {
 			temps = System.currentTimeMillis();
 			SerializeGrapheTrajet.serialiserGrapheTrajet(g);
 			System.out.println("Serialisation 3 : "+(System.currentTimeMillis()-temps)+" millisecondes");
-			System.out.println("Début création 5");
+			
+			/*System.out.println("Début création 5");
 			temps = System.currentTimeMillis();
 			g = new GrapheTrajet(5);
 			System.out.println("Creation du graphe 5: "+(System.currentTimeMillis()-temps)+" millisecondes");
-			System.out.println("Début sérialisation 5");
+			/*System.out.println("Début sérialisation 5");
 			temps = System.currentTimeMillis();
-			SerializeGrapheTrajet.serialiserGrapheTrajet(g);
+			SerializeGrapheTrajet.serialiserGrapheTrajet(g);			
 			System.out.println("Serialisation "+g.getJour()+" : "+(System.currentTimeMillis()-temps)+" millisecondes");
 			/*System.out.println("Début création 6");
 			temps = System.currentTimeMillis();
@@ -76,8 +78,10 @@ public class SomeTests {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}catch(java.lang.OutOfMemoryError e){
+			System.out.println(e.getMessage());
+			System.out.println(Runtime.getRuntime().freeMemory());
 		}
-		*/
 		
 		/*GrapheTrajet g2 = SerializeGrapheTrajet.deserialiserGrapheTrajet(1);
 		System.out.println("Deserialisation : "+(System.currentTimeMillis()-temps)+" millisecondes");
@@ -97,25 +101,43 @@ public class SomeTests {
 			e.printStackTrace();
 		}
 		System.out.println("End");*/
-		/*
+	/*
+		GrapheTrajet g2 = SerializeGrapheTrajet.deserialiserGrapheTrajet(3);
+		
+		Horaire h = new Horaire(8, 34, 00);
+		
 		temps = System.currentTimeMillis();
-		g2.dijkstraArriverA("Stade Musard", "La Belle Rose", h2);
+		g2.dijkstraArriverA("Stade Musard", "La Belle Rose", h);
 		System.out.println("Dijkstra : "+(System.currentTimeMillis()-temps)+" millisecondes");
 		
-		/*temps = System.currentTimeMillis();
-		g2.astar("Saige", "Belcier", h);
+		temps = System.currentTimeMillis();
+		g2.astar("Stade Musard", "La Belle Rose", h);
 		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
 			
 		temps = System.currentTimeMillis();
-		g2.astar("Saige", "Belcier", h);
+		g2.astar("Stade Musard", "La Belle Rose", h);
 		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
 			
 		temps = System.currentTimeMillis();
-		g2.dijkstraArriverA("Saige", "Belcier", h2);
+		g2.dijkstraArriverA("Saige", "Belcier", h);
 		System.out.println("DiskstraArriverA : "+(System.currentTimeMillis()-temps)+" millisecondes");
 			
 		temps = System.currentTimeMillis();
 		g2.astarPenalisant("Saige", "Belcier", h, "Attente");
-		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");*/
+		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
+	
+		*/
+		GrapheTrajet g = new GrapheTrajet();
+		//g.transformerEdgeEnArcTrajet(3);
+		//System.out.println("3");
+		//g = new GrapheTrajet();
+		//g.transformerEdgeEnArcTrajet(5);
+		//System.out.println("5");
+		g = new GrapheTrajet();
+		g.transformerEdgeEnArcTrajet(6);
+		System.out.println("6");
+		g = new GrapheTrajet();
+		g.transformerEdgeEnArcTrajet(7);
+		System.out.println("7");
 	}
 }

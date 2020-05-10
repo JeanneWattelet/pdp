@@ -2,6 +2,8 @@ package domain;
 
 import transport.*;
 
+import de.fhpotsdam.unfolding.examples.animation.*;
+
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.ALTAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
@@ -22,6 +24,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	private int jour;
 	
 	private static double PENALITE = 2;
+	private static double TEMPSMAXATTENTE = 1200; //on attendra jamais plus de 1200 secondes soit 20 minutes à un arrêt.
 	
 	public int getJour() {
 		return jour;
@@ -41,9 +44,8 @@ public class GrapheTrajet implements java.io.Serializable{
 	public GrapheTrajet(int jour) throws IOException {
 		this.jour = jour;
 		g = new SimpleDirectedWeightedGraph<String, ArcTrajet>(ArcTrajet.class);
-		List<Ligne> tram = Donnees.ChargerDonnees("src\\keolis_tram");
-		
-		List<Ligne> bus = Donnees.ChargerDonnees("src\\keolis_bus");
+		List<Ligne> tram = Donnees.ChargerDonnees("src\\keolis_tram", jour);
+		List<Ligne> bus = Donnees.ChargerDonnees("src\\keolis_bus", jour);
 		
 		ajouterSommets(tram);
 		ajouterSommets(bus);
@@ -89,7 +91,7 @@ public class GrapheTrajet implements java.io.Serializable{
 						//sommet=s.toString()+h.toString();//on cree un sommet au nom unique selon son lieu et son horaire
 						if(!this.g.containsVertex(sommet)) {
 							this.g.addVertex(sommet);
-							//System.out.println(sommet);
+							System.out.println(sommet);
 						}
 					}
 				}
@@ -158,10 +160,10 @@ public class GrapheTrajet implements java.io.Serializable{
 				sommetB = iterSommetB.next();
 				stationB = denommer(sommetB);
 				horaireB = trouverHoraire(sommetB);
-				if(!(sommetA.contentEquals(sommetB))&&stationA.contentEquals(stationB)&&horaireA.estAvant(horaireB)) {
+				if(!(sommetA.contentEquals(sommetB))&&stationA.contentEquals(stationB)&&horaireA.estAvant(horaireB)&&(TEMPSMAXATTENTE>horaireA.tempsEntre(horaireB))) {
 					if((best==0)||(best>horaireA.tempsEntre(horaireB))) {
-						sommetA = nommerSommet(stationA, horaireA);
-						sommetB = nommerSommet(stationB, horaireB);
+						sommetA = nommerSommet(stationA, horaireA, trouverPosition(sommetA));
+						sommetB = nommerSommet(stationB, horaireB, trouverPosition(sommetB));
 						if(best!=0) {
 							g.removeEdge(arc);
 						}
@@ -181,11 +183,11 @@ public class GrapheTrajet implements java.io.Serializable{
 	
 	private void ajouterAretesMarche() {
 		ObjectInputStream ois = null;
-		List<Edge> listeEdge;
+		List<Edge> listeEdge = new ArrayList<Edge>();
 	    try {
-	      final FileInputStream fichier = new FileInputStream("src\\saves\\arcsEntreStationsAPied.dat");
+	      final FileInputStream fichier = new FileInputStream("src\\data1\\arcsEntreStationsAPied.dat");
 	      ois = new ObjectInputStream(fichier);
-	       listeEdge = (List<Edge>)ois.readObject() ;
+	      listeEdge = (List<Edge>)ois.readObject() ;
 	    } catch (final java.io.IOException e) {
 	      e.printStackTrace();
 	      return;
@@ -203,21 +205,103 @@ public class GrapheTrajet implements java.io.Serializable{
 	    }
 	    String sommet, nouveauSommet;
 	    String station;
-	    Set<String> sommets = g.vertexSet();
+	    Set<String> sommets = new HashSet<String>();
+	    int index;
+	    float x, y;
+	    sommets.addAll(g.vertexSet());
 	    Iterator<String> iterSommets = sommets.iterator();
 	    while(iterSommets.hasNext()) {
 	    	sommet = iterSommets.next();
 	    	station = denommer(sommet);
 	    	for(Edge e : listeEdge) {
-		    	if(station==e.getLocS()) {
-		    		nouveauSommet = nommerSommet(e.getLocT(), ajouterPoids(e.getWeight(), trouverHoraire(sommet)));
+		    	if(station.contentEquals(e.getLocS())) {
+		    		
+		    		index = e.getTrajet().size();
+		    		x = e.getTrajet().get(index).getLat();
+		    		y = e.getTrajet().get(index).getLon();
+		    		
+		    		nouveauSommet = nommerSommet(e.getLocT(), ajouterPoids(e.getWeight(), trouverHoraire(sommet)), x, y);
 		    		if(!g.containsVertex(nouveauSommet)) {
 		    			g.addVertex(nouveauSommet);
 		    		}
-		    		System.out.println(addWeightedEdge(e.getLocS(), e.getLocT(), e.getWeight(), Ligne.PIED, Ligne.PIED));
+		    		addWeightedEdge(sommet, nouveauSommet, e.getWeight(), Ligne.PIED, Ligne.PIED);
 		    	}
 		    }
-	    }	
+	    }
+	    System.out.println("Creation des arcs de marche terminee");
+	}
+	
+	public void transformerEdgeEnArcTrajet(int j) {
+		
+		jour = j;
+		
+		//List<Ligne> tram;
+		List<Ligne> bus;
+		try {
+			//tram = Donnees.ChargerDonnees("src\\keolis_tram", j);
+			bus = Donnees.ChargerDonnees("src\\keolis_bus", j);
+			
+			//ajouterSommets(tram);
+			ajouterSommets(bus);
+			
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		ObjectInputStream ois = null;
+		List<Edge> listeEdge = new ArrayList<Edge>();
+	    try {
+	      final FileInputStream fichier = new FileInputStream("src\\data1\\arcsEntreStationsAPied.dat");
+	      ois = new ObjectInputStream(fichier);
+	      listeEdge = (List<Edge>)ois.readObject() ;
+	    } catch (final java.io.IOException e) {
+	      e.printStackTrace();
+	      return;
+	    } catch (final ClassNotFoundException e) {
+	      e.printStackTrace();
+	      return;
+	    } finally {
+	      try {
+	        if (ois != null) {
+	          ois.close();
+	        }
+	      } catch (final IOException ex) {
+	        ex.printStackTrace();
+	      }
+	    }
+	    String sommet, nouveauSommet;
+	    String station;
+	    Set<String> sommets = new HashSet<String>();
+	    int index;
+	    float x, y;
+	    ArcTrajet at;
+	    List<ArcTrajet> lat = new ArrayList<ArcTrajet>();
+	    sommets.addAll(g.vertexSet());
+	    Iterator<String> iterSommets = sommets.iterator();
+	    while(iterSommets.hasNext()) {
+	    	sommet = iterSommets.next();
+	    	station = denommer(sommet);
+	    	for(Edge e : listeEdge) {
+		    	if(station.contentEquals(e.getLocS())) {
+		    		
+		    		index = e.getTrajet().size();
+		    		x = e.getTrajet().get(index-1).getLat();
+		    		y = e.getTrajet().get(index-1).getLon();
+		    		
+		    		nouveauSommet = nommerSommet(e.getLocT(), ajouterPoids(e.getWeight(), trouverHoraire(sommet)), x, y);
+		    		if(!g.containsVertex(nouveauSommet)) {
+		    			g.addVertex(nouveauSommet);
+		    		}
+		    		at = addWeightedEdge(sommet, nouveauSommet, e.getWeight(), Ligne.PIED, Ligne.PIED);
+		    		lat.add(at);
+		    		at = addWeightedEdge(nouveauSommet, sommet, e.getWeight(), Ligne.PIED, Ligne.PIED);
+		    		lat.add(at);
+		    		//System.out.println(sommet+" - "+nouveauSommet);
+		    	}
+		    }
+	    }
+	    SerializeGrapheTrajet.serialiserArcTrajet(lat, j);
 	}
 	
 	public Horaire ajouterPoids(double d, Horaire h) {
@@ -241,7 +325,7 @@ public class GrapheTrajet implements java.io.Serializable{
 		int h=0,m=0,sec=0;//j=0,
 		if(s.contains("%")) {
 			String[] str = s.split("%");
-			String[] horaire = str[1].split(":");
+			String[] horaire = str[2].split(":");
 			//j = Integer.valueOf(horaire[0]);
 			h = Integer.valueOf(horaire[0]);
 			m = Integer.valueOf(horaire[1]);
@@ -250,12 +334,22 @@ public class GrapheTrajet implements java.io.Serializable{
 		return new Horaire(jour, h, m, sec); //j,
 	}
 	
-	public String nommerSommet(Station s, Horaire h) {
-		return s.toString()+"%"+h.toString();
+	public static String trouverPosition(String s) {
+		String[] rep;
+		rep = s.split("%");
+		return rep[1];
 	}
 	
-	public String nommerSommet(String s, Horaire h) {
-		return s+"%"+h.toString();
+	public String nommerSommet(Station s, Horaire h) {
+		return s.toString()+"%"+s.getPosition().getX()+";"+s.getPosition().getY()+"%"+h.toString();
+	}
+	
+	public String nommerSommet(String s, Horaire h, String position) {
+		return s+"%"+position+"%"+h.toString();
+	}
+	
+	public String nommerSommet(String s, Horaire h, float x, float y) {
+		return s+"%"+x+";"+y+"%"+h.toString();
 	}
 	
 	/*
@@ -525,8 +619,8 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 		ArcTrajet arc;
 		while(iterArcs.hasNext()) {
 			arc = iterArcs.next();
-			if(!tabouTransport.contains(arc.getTransport())&&!tabouLigne.contains(arc.getNom())) {
-				h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT(), arc.getTransport(), arc.getNom());
+			if(!tabouTransport.contains(arc.getTransportString())&&!tabouLigne.contains(arc.getNom())) {
+				h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT(), arc.getTransportString(), arc.getNom());
 				//System.out.println((String)arc.getSourceT()+" "+(String)arc.getTargetT()+" "+(int)arc.getWeightT()+" "+arc.getTransport()+" "+arc.getNom());
 			}
 		}
@@ -583,11 +677,11 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 		ArcTrajet arc;
 		while(iterArcs.hasNext()) {
 			arc = iterArcs.next();
-			if(!tabouTransport.contains(arc.getTransport())&&!tabouLigne.contains(arc.getNom())) {
-				if(arc.getTransport().equals(penalite))
-					h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT()*PENALITE, arc.getTransport(), arc.getNom());
+			if(!tabouTransport.contains(arc.getTransportString())&&!tabouLigne.contains(arc.getNom())) {
+				if(arc.getTransportString().equals(penalite))
+					h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT()*PENALITE, arc.getTransportString(), arc.getNom());
 				else
-					h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT(), arc.getTransport(), arc.getNom());
+					h.addWeightedEdge((String)arc.getSourceT(), (String)arc.getTargetT(), (int)arc.getWeightT(), arc.getTransportString(), arc.getNom());
 			}
 		}
 		return h;
@@ -600,7 +694,7 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 	private List<ArcTrajet> depenaliser(GrapheTrajet gr, List<ArcTrajet> l, String p){
 		ArrayList<ArcTrajet> liste = new ArrayList<ArcTrajet>();
 		for(ArcTrajet arc : l) {
-			if(arc.getTransport()==p) {
+			if(arc.getTransportString()==p) {
 				gr.g.setEdgeWeight(arc, arc.getWeightT()/PENALITE);
 			}
 			liste.add(arc);
