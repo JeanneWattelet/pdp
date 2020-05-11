@@ -1,0 +1,5 @@
+route_id,route_short_name,route_long_name,route_type,agency_id,route_desc,route_url,route_color,route_text_color
+59,A,Ligne A,0,1,,,831F82,FFFFFF
+60,B,Ligne B,0,1,,,E50040,FFFFFF
+61,C,Ligne C,0,1,,,D35098,FFFFFF
+62,D,Ligne D,0,1,,,9262A3,FFFFFF

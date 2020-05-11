@@ -1,0 +1,4 @@
+service_id,date,exception_type
+2020-TRAM_PCA-Dimanche-22,20200508,1
+2020-TRAM_PCA-Semaine-27,20200521,2
+2020-TRAM_PCA-Dimanche-26,20200521,1
