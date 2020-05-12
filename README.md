@@ -1,6 +1,6 @@
 # pdp
 
-Le problème qui nous était posé était la recheche de chemins multi-modaux et son application aux réseaux de transport d'une ville. La ville que nous avons choisi comme exemple est la métropole de Bordeaux mais le code est assez général pour être appliqué à n'importe quelle ville à partir du moment où nous avons les informations suffisantes sur celle-ci.
+Le problème qui nous a été posé était la recheche de chemins multi-modaux et son application aux réseaux de transport d'une ville. La ville que nous avons choisi comme exemple est la métropole de Bordeaux mais le code est assez général pour être appliqué à n'importe quelle ville à partir du moment où nous avons les informations suffisantes sur celle-ci.
 
 Notre application se decoupe en plusieurs packages :
  - Package domain : Classe GrapheTrajet et tout ce qui concerne sa création, son utilisation pour un plus court chemin et sa sérialisaiton.
