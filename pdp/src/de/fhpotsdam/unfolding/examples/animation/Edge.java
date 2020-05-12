@@ -79,11 +79,24 @@ public class Edge extends org.jgrapht.graph.DefaultWeightedEdge implements Seria
 		}
 	}
 	
-	public boolean equals(Edge e) {
-		if(e.getLocS() == this.locS && e.getLocT() == this.locT) {
+	@Override
+	public boolean equals(Object obj) {
+		if(obj==this)
 			return true;
-		}
-		return false;
+		if(obj==null)
+			return false;
+		if(!(obj instanceof Edge))
+			return false;
+		Edge o = (Edge) obj;
+		if(o.locS!=this.locS)
+			return false;
+		if(o.locT!=this.locT)
+			return false;
+		if(o.weight!=this.weight)
+			return false;
+		if(o.trajet!=this.trajet)
+			return false;
+		return true;
 	}
 	
 	@Override
