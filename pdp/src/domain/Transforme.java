@@ -10,35 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import transport.*;
+
 public class Transforme {
 
-	public Transforme() {
-	}
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////////	
-	public Map<String, List<String>> MapStation(String chemin) throws IOException {
-		Map<String, List<String>> Stations = new HashMap<String, List<String>>();
-		String ligne;
-		String[] str = null;
-
-		Path p = Paths.get(chemin+"\\stops.txt");
-		BufferedReader read = Files.newBufferedReader(p);
-
-		ligne = read.readLine();
-		while( ( ligne = read.readLine() ) != null) {
-			str = ligne.split(",") ;
-			List<String> TMP = new ArrayList<String>();
-
-			TMP.add(str[1]); // stop name 
-			TMP.add(str[2]); // stop_lat
-			TMP.add(str[3]); // stop_lon
-
-			Stations.put(str[0], TMP); // put(id , List<String> ) ;
-		}
-		return Stations;
-	}
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	public Map<String, List<String>> TabaleauRoutes(String chemin) throws IOException {
 		Map<String, List<String>> Routes = new HashMap<String, List<String>>();
 		String ligne;
@@ -59,7 +34,7 @@ public class Transforme {
 		}
 		return Routes;
 	} 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////
 	public List<List<String>> TabaleauTrips(String chemin) throws IOException {
 		List<List<String>> trips = new ArrayList<List<String>>();
 
@@ -82,8 +57,8 @@ public class Transforme {
 		}
 		return trips;
 	} 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
-	public Map<String, List<String>> MapCalendrier(String chemin) throws IOException {
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+	public Map<String, List<String>> TabaleauCalendrier(String chemin) throws IOException {
 
 		Map<String, List<String>> Calendrier = new HashMap<String, List<String>>();
 		String ligne;
@@ -104,7 +79,7 @@ public class Transforme {
 		}
 		return Calendrier;
 	} 
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 	public List<List<String>> TabaleauStopTimes(String chemin) throws IOException {
 		List<List<String>> StopTimes = new ArrayList<List<String>>();
 
