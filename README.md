@@ -19,3 +19,5 @@ Certains fichiers de données ne peuvent pas être téléchargés sur github à 
 - stop_times.txt : pour les données GTFS des bus (56Mo) que vous pouvez retrouver à l'adresse suivante : https://www.data.gouv.fr/fr/datasets/gtfs-du-reseau-de-transport-tbm-offre-de-service-bus-et-tram/
 - fv_adresse_p.geojson : Adresses de Bordeaux (80Mo) que vous pouvez retrouver à l'adresse suivante : https://opendata.bordeaux-metropole.fr/explore/dataset/fv_adresse_p/information/
 - Les listes d'ArcTrajet : les arêtes d'attente, de marche et de transport. Ces fichiers doivent être créés à l'aide des fonctions de notre application.
+
+Toutes les informations sur sur projet sont disponibles dans le rapport suivant : https://fr.overleaf.com/read/cgkwnkjcrccv.
