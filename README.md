@@ -13,3 +13,4 @@ Le téléchargement de javafx11 peut se faire directement à travers eclise de l
 Liste des fichiers que nous ne pouvons pas télécharger ici à cause de leur taille :
 - stop_times.txt : pour les données GTFS des bus (56Mo)
 - fv_adresse_p.geojson : Adresses de Bordeaux (80Mo)
+- Les listes d'ArcTrajet : les arêtes d'attente, de marche et de transport.
