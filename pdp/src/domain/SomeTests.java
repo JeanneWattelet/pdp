@@ -21,7 +21,7 @@ import transport.*;
 
 public class SomeTests {
 
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		
 
 		long temps = System.currentTimeMillis(); 
@@ -126,7 +126,7 @@ public class SomeTests {
 		g2.astarPenalisant("Saige", "Belcier", h, "Attente");
 		System.out.println("A* : "+(System.currentTimeMillis()-temps)+" millisecondes");
 	
-		*/
+		
 		GrapheTrajet g = new GrapheTrajet();
 		//g.transformerEdgeEnArcTrajet(3);
 		//System.out.println("3");
@@ -139,5 +139,5 @@ public class SomeTests {
 		g = new GrapheTrajet();
 		g.transformerEdgeEnArcTrajet(7);
 		System.out.println("7");
-	}
+	}*/
 }

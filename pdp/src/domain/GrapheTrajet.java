@@ -26,10 +26,6 @@ public class GrapheTrajet implements java.io.Serializable{
 	private static double PENALITE = 2;
 	private static double TEMPSMAXATTENTE = 1200; //on attendra jamais plus de 1200 secondes soit 20 minutes à un arrêt.
 	
-	public int getJour() {
-		return jour;
-	}
-	
 	public GrapheTrajet(List<Ligne> LignesTrajet, int jour) throws IOException {
 		this.jour = jour;
 		g = new SimpleDirectedWeightedGraph<String, ArcTrajet>(ArcTrajet.class);
@@ -63,12 +59,15 @@ public class GrapheTrajet implements java.io.Serializable{
 		this.jour = 0;
 	}
 	
+	public int getJour() {
+		return jour;
+	}
+	
 	/*
 	 * Création d'un nouveau graphe à partir d'un ensemble d'entités du package "Transport"
 	 * (Cette partie est utile avant la sérialisation du graphe)
 	 * (Une fois que celui-ci est créé, ces fonctions ne sont plus utiles pour la résolution)
 	 */
-	
 	
 	private void ajouterSommets(List<Ligne> LignesTrajet) {
 		
@@ -99,8 +98,6 @@ public class GrapheTrajet implements java.io.Serializable{
 		}
 		System.out.println("Creation des sommets terminee");
 	}
-	
-	
 	
 	private void ajouterAretesDeTransport(List<Ligne> LignesTrajet){
 		if(jour >7 || jour <1) { // si jour n'est pas entre 1 et 7 ==> Férier ==> meme horaire que Dimanche (== 7)
@@ -135,8 +132,6 @@ public class GrapheTrajet implements java.io.Serializable{
 		}
 		System.out.println("Creation des arcs de trajet terminee");
 	}
-	
-	
 		
 	private void ajouterAretesAttenteTrajets() {
 		String  stationA, stationB, sommetA, sommetB ;
@@ -304,7 +299,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	    SerializeGrapheTrajet.serialiserArcTrajet(lat, j);
 	}
 	
-	public Horaire ajouterPoids(double d, Horaire h) {
+	private Horaire ajouterPoids(double d, Horaire h) {
 		return new Horaire(h.getHeure()+(int)(d/60),(int)(h.getMinute()+d)%60,h.getMinute());
 	}
 	
@@ -425,7 +420,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	 */
 	
 	
-public List<ArcTrajet> astar(String from, String to, Horaire h) {
+	public List<ArcTrajet> astar(String from, String to, Horaire h) {
 		
 		GrapheTrajet gr = filtrerGraphe();
 		
@@ -530,7 +525,7 @@ public List<ArcTrajet> astar(String from, String to, Horaire h) {
         }
 	}
 	
-public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
+	public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
 		
 		GrapheTrajet gr = filtrerGraphe();
 		
@@ -779,7 +774,7 @@ public List<ArcTrajet> astarArriverA(String from, String to, Horaire h) {
         }
 	}
 	
-public List<ArcTrajet> astarArriverAPenalisant(String from, String to, Horaire h, String p) {
+	public List<ArcTrajet> astarArriverAPenalisant(String from, String to, Horaire h, String p) {
 		
 		GrapheTrajet gr = filtrerGraphe(p);
 		

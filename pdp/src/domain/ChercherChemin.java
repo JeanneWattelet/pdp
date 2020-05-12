@@ -7,7 +7,7 @@ import transport.Horaire;
 import transport.Ligne;
 
 public class ChercherChemin {
-	GrapheTrajet g;
+	private GrapheTrajet g;
 	
 	public ChercherChemin() {
 		Date d = new Date();
@@ -18,7 +18,7 @@ public class ChercherChemin {
 		 */
 	}
 	
-	int trouverJour(int j) {
+	private int trouverJour(int j) {
 		if(j<4) {
 			return 3;
 		}
