@@ -41,8 +41,8 @@ public class Other extends Application {
 	/////////////////////////////////////////////////// PARAMETERS ///////////////////////////////////////////////////
 
 	// width and height of the canvas 
-	private final static double WIDTH = 600;
-	private final static double HEIGHT = 600;
+	private final static double WIDTH = 800;
+	private final static double HEIGHT = 800;
 	// zone of canvas used without menu bar
 	private final static double bestWidth = WIDTH*0.9375;
 	private final static double bestHeight = HEIGHT*0.9375;
@@ -649,16 +649,16 @@ public class Other extends Application {
 						gc.fillText("Moins d'attente", bestWidth*0.8, bestHeight*0.495, bestWidth*0.11);
 						gc.fillText("Heure de depart", bestWidth*0.3, bestHeight*0.586, bestWidth*0.11);
 						gc.fillText("Ou", bestWidth*0.5, bestHeight*0.64, bestWidth*0.6);
-						gc.fillText("Arrivée avant", bestWidth*0.3, bestHeight*0.697, bestWidth*0.10);
+						gc.fillText("ArrivÃ©e avant", bestWidth*0.3, bestHeight*0.697, bestWidth*0.10);
 
 						if(countButtonOk == 0) { // added one time to the root
 
 							// text areas
 							final TextField TextField = new TextField();
-							//TextField.setPromptText(" Adresse de départ ");
+							//TextField.setPromptText(" Adresse de dÃ©part ");
 							TextField.setText("46 rue jules guesde");
 							final TextField TextField2 = new TextField();
-							//TextField2.setPromptText(" Adresse d'arrivée ");
+							//TextField2.setPromptText(" Adresse d'arrivÃ©e ");
 							TextField2.setText("29 rue Charles Domercq");
 							final TextField TextField3 = new TextField();
 							Date date = new Date();
