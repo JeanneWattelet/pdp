@@ -20,11 +20,20 @@ public class PositionInCity implements Serializable {
 		return b.append(string).append(" ").append(location).toString();	
 	}
 	
-	public boolean equals(PositionInCity e) {
-		if(string == e.getString() && location == e.getLocation()) {
+	@Override
+	public boolean equals(Object obj) {
+		if(obj==this)
 			return true;
-		}
-		return false;
+		if(obj==null)
+			return false;
+		if(!(obj instanceof PositionInCity))
+			return false;
+		PositionInCity o = (PositionInCity) obj;
+		if(o.string!=this.string)
+			return false;
+		if(o.location!=this.location)
+			return false;
+		return true;
 	}
 
 	public Location getLocation() {
