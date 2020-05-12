@@ -58,6 +58,23 @@ public void setPoint (Point p) {
 	  return false;
   }
   
+@Override
+	public boolean equals(Object obj) {
+		if(obj==this)
+			return true;
+		if(obj==null)
+			return false;
+		if(!(obj instanceof Point))
+			return false;
+		Point o = (Point) obj;
+		if(o.x!=this.x)
+			return false;
+		if(o.y!=this.y)
+			return false;
+		return true;
+	}
+	
+	
   // Calcul la distance entre deux points
   public static double distance(Point p , Point q){
     double d = Math.sqrt(  (p.x-q.x)*(p.x-q.x)  +  (p.y-q.y)*(p.y-q.y)  );
