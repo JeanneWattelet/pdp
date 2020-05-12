@@ -82,6 +82,28 @@ class Circle implements Serializable{
 	boolean isFar(Circle c1) {
 		return (Point.distance(this.center, c1.center)<100+(this.radius + c1.radius));
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj==this)
+			return true;
+		if(obj==null)
+			return false;
+		if(!(obj instanceof Circle))
+			return false;
+		Circle o = (Circle) obj;
+		if(o.radius!=this.radius)
+			return false;
+		if(o.center!=this.center)
+			return false;
+		if(o.image!=this.image)
+			return false;
+		return true;
+	}
+	
+	public int hashCode() {
+		return (int)radius+center.hashCode()+image.hashCode();
+	}
 
 	public String toString(){
 		return "Circle : "+ center.toString()+" , "+  radius ;
