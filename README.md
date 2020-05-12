@@ -5,6 +5,11 @@
 - Le reste des package est utilisé pour la gestion des données et de l'interface. Cela prend en compte les données brutes, les doonées modifiées, les images et les classes.
 - Les librairies devraient être dans le dossier pdp. Dans tous les cas, elles sont obligatoires pour que le programme fonctionne.
 
+JGraphT peut être récupéré à l'adresse suivante : https://jgrapht.org
+
+Le téléchargement de javafx11 peut se faire directement à travers eclise de la manière suivante :
+ Help -> Eclipse MarketSpace -> Recherche : javafx11 -> installer e(fx)clipse
+
 Liste des fichiers que nous ne pouvons pas télécharger ici à cause de leur taille :
 - stop_times.txt : pour les données GTFS des bus (56Mo)
 - fv_adresse_p.geojson : Adresses de Bordeaux (80Mo)
