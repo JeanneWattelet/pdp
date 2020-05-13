@@ -10,21 +10,20 @@ import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.List;
 
-import domain.ArcTrajet;
-
 public class Serialisable {
 
 	public static void SaveSchedule() {
 
 		try {
 			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/saves/schedule.dat"));
+			save.writeObject(Other.start);
 			save.writeObject(Other.end);
-			save.writeObject(Other.listStations.size());
-			Iterator<ArcTrajet> it = Other.listStations.iterator();
-			while(it.hasNext()) {
-				ArcTrajet a = it.next();
-				save.writeObject(a);
-			}
+			save.writeObject(Other.objectif);
+			save.writeObject(Other.listStations);
+			save.writeObject(Other.listNameStations);
+			save.writeObject(Other.listHoraire);
+			save.writeObject(Other.listCoordStations);
+			save.writeObject(Other.listNumeroStations);
 			save.close();
 		}
 		catch (Exception e) {
