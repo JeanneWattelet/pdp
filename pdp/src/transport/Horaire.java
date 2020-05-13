@@ -1,7 +1,7 @@
 package transport;
 import java.io.Serializable;
 
-public class Horaire implments Serializable{
+public class Horaire implements Serializable{
 	private static final long serialVersionUID = 4244886238840695357L;
 
 	private int jour;
