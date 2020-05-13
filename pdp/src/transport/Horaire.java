@@ -1,14 +1,17 @@
 package transport;
+import java.io.Serializable;
 
-public class Horaire {
+public class Horaire implments Serializable{
+	private static final long serialVersionUID = 4244886238840695357L;
+
 	private int jour;
 	private int heure;
 	private int minute;
 	private int seconde;
 	
 	/*
-	 * Définition des contantes pour les trajets : clarification du code.
-	 * Serait-il plus pratique de créer une classe statique à part pour les jours ?
+	 * DÃ©finition des contantes pour les trajets : clarification du code.
+	 * Serait-il plus pratique de crÃ©er une classe statique Ã  part pour les jours ?
 	 */
 	public final static int LUNDI = 1; 
 	public final static int MARDI = 2; 
@@ -61,7 +64,7 @@ public class Horaire {
 	}
 
 	public int tempsEntre(Horaire horaire) {
-		int res=0; // on convertit tout en seconde et on renvoie la différence
+		int res=0; // on convertit tout en seconde et on renvoie la diffÃ©rence
 		if(this.estAvant(horaire)) { //
 			res += ( 3600*horaire.getHeure()+60*horaire.getMinute()+horaire.getSeconde() )
 					- ( 3600*this.heure+60*this.minute+this.seconde) ;
