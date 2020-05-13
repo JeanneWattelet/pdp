@@ -57,29 +57,33 @@ public class SerializeGrapheTrajet {
 		}
 	}
 	
-	public static GrapheTrajet deserialiserGrapheTrajet(int jour){
-		GrapheTrajet gt = null;
-		
-		ObjectInputStream ois = null;
+	public static List<ArcTrajet> deserialiserGrapheTrajet(int jour){
+		List<ArcTrajet> l1 = new ArrayList<ArcTrajet>();
 
-	    try {
-	      final FileInputStream fichier = new FileInputStream("src\\saves\\"+jour+".ser");
-	      ois = new ObjectInputStream(fichier);
-	      gt = (GrapheTrajet)ois.readObject() ;
-	    } catch (final java.io.IOException e) {
-	      e.printStackTrace();
-	    } catch (final ClassNotFoundException e) {
-	      e.printStackTrace();
-	    } finally {
-	      try {
-	        if (ois != null) {
-	          ois.close();
-	        }
-	      } catch (final IOException ex) {
-	        ex.printStackTrace();
-	      }
-	    }
-		return gt;
+		try {
+			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/someData/aretesAttenteMemeEndroitBus" + jour + ".dat"));
+			ObjectInputStream load1 = new ObjectInputStream(new FileInputStream("src/someData/aretesTram" + jour + ".dat"));
+			ObjectInputStream load2 = new ObjectInputStream(new FileInputStream("src/someData/aretesBus" + jour + ".dat"));
+			ObjectInputStream load3 = new ObjectInputStream(new FileInputStream("src/someData/aretesMarcheSimplifier" + jour + ".dat"));
+			ObjectInputStream load4 = new ObjectInputStream(new FileInputStream("src/someData/aretesAttenteApresMarche" + jour + ".dat"));
+
+			l1 =(List<ArcTrajet>) load.readObject();
+			l1.addAll((List<ArcTrajet>) load1.readObject());
+			l1.addAll((List<ArcTrajet>) load2.readObject());
+			l1.addAll((List<ArcTrajet>) load3.readObject());
+			l1.addAll((List<ArcTrajet>) load4.readObject());
+
+			load.close();
+			load1.close();
+			load2.close();
+			load3.close();
+			load4.close();
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+		
+		return l1;
 	}
 	
 	public static void saveTramEtBus(int jour) {
