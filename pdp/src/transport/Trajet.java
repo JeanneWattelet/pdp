@@ -1,8 +1,10 @@
 package transport;
 import java.util.*;
+import java.io.Serializable;
 
-public class Trajet {
+public class Trajet implements Serializable {
 	
+	private static final long serialVersionUID = 5786090440994799189L;
 	private Map<Station, Horaire> arrets;
 	private String id;
 	private String direction ;
