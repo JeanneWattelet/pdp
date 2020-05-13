@@ -1,6 +1,9 @@
 package transport;
+import java.io.Serializable;
 
-public class Coordonnees {
+public class Coordonnees implements Serializable {
+	private static final long serialVersionUID = -5286747764101397330L;
+
 	private float x;
 	private float y;
 	
