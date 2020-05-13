@@ -1,16 +1,18 @@
 package transport;
 
 import java.util.*;
+import java.io.Serializable;
 
-public class Ligne {
+public class Ligne implements Serializable{
+	private static final long serialVersionUID = -6964317824505526875L;
 	private String id;
 	private List<Trajet> trajets;
 	private String nom;
 	private String vehicule;
 	
 	/*
-	 * Définition des contantes pour les trajets : clarification du code.
-	 * Serait-il plus pratique de créer une classe statique à part pour les transports ?
+	 * DÃ©finition des contantes pour les trajets : clarification du code.
+	 * Serait-il plus pratique de crÃ©er une classe statique Ã  part pour les transports ?
 	 */
 	public final static String ATTENTE = "Attente"; 
 	public final static String BUS = "Bus"; 
@@ -54,7 +56,7 @@ public class Ligne {
 	public List<Trajet> getTrajetsAfter(Horaire h) {
 		List<Trajet> rep = new ArrayList<Trajet>();
 		for(Trajet t: trajets)
-			if(!t.getArretsAfter(h).isEmpty()) {//si le trajet s'arrête avant h, alors on ne le prend pas.
+			if(!t.getArretsAfter(h).isEmpty()) {//si le trajet s'arrÃªte avant h, alors on ne le prend pas.
 				rep.add(new Trajet( t.getId(), t.getArretsAfter(h), t.getDirection(), t.getCalendrier())); 
 			}
 			return rep;
