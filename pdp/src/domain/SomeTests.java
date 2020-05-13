@@ -22,7 +22,16 @@ import transport.*;
 public class SomeTests {
 
 	/*public static void main(String[] args) {
-		
+	
+		// sauvegarde les aretes du graphe
+		try {	
+			//g = new GrapheTrajet(3);
+			//g = new GrapheTrajet(5);
+			//g = new GrapheTrajet(6);
+			g = new GrapheTrajet(7);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		long temps = System.currentTimeMillis(); 
 		
@@ -40,36 +49,36 @@ public class SomeTests {
 		
 		/*GrapheTrajet g;
 		try {
-			System.out.println("Début création 3");
+			System.out.println("DÃ©but crÃ©ation 3");
 			g = new GrapheTrajet(3);
 			System.out.println("Creation du graphe 3 : "+(System.currentTimeMillis()-temps)+" millisecondes");
 			
-			System.out.println("Début sérialisation 3");
+			System.out.println("DÃ©but sÃ©rialisation 3");
 			temps = System.currentTimeMillis();
 			SerializeGrapheTrajet.serialiserGrapheTrajet(g);
 			System.out.println("Serialisation 3 : "+(System.currentTimeMillis()-temps)+" millisecondes");
 			
-			/*System.out.println("Début création 5");
+			/*System.out.println("DÃ©but crÃ©ation 5");
 			temps = System.currentTimeMillis();
 			g = new GrapheTrajet(5);
 			System.out.println("Creation du graphe 5: "+(System.currentTimeMillis()-temps)+" millisecondes");
-			/*System.out.println("Début sérialisation 5");
+			/*System.out.println("DÃ©but sÃ©rialisation 5");
 			temps = System.currentTimeMillis();
 			SerializeGrapheTrajet.serialiserGrapheTrajet(g);			
 			System.out.println("Serialisation "+g.getJour()+" : "+(System.currentTimeMillis()-temps)+" millisecondes");
-			/*System.out.println("Début création 6");
+			/*System.out.println("DÃ©but crÃ©ation 6");
 			temps = System.currentTimeMillis();
 			g = new GrapheTrajet(6);
 			System.out.println("Creation du graphe 6 : "+(System.currentTimeMillis()-temps)+" millisecondes");
-			System.out.println("Début sérialisation 6");
+			System.out.println("DÃ©but sÃ©rialisation 6");
 			temps = System.currentTimeMillis();
 			SerializeGrapheTrajet.serialiserGrapheTrajet(g);
 			System.out.println("Serialisation 6 : "+(System.currentTimeMillis()-temps)+" millisecondes");
-			System.out.println("Début création 7");
+			System.out.println("DÃ©but crÃ©ation 7");
 			temps = System.currentTimeMillis();
 			g = new GrapheTrajet(7);
 			System.out.println("Creation du graphe 7 : "+(System.currentTimeMillis()-temps)+" millisecondes");
-			System.out.println("Début sérialisation 7");
+			System.out.println("DÃ©but sÃ©rialisation 7");
 			temps = System.currentTimeMillis();
 			SerializeGrapheTrajet.serialiserGrapheTrajet(g);
 			System.out.println("Serialisation 7 : "+(System.currentTimeMillis()-temps)+" millisecondes");
