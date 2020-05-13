@@ -48,11 +48,26 @@ public class MemeEndroit implements Serializable {
 	}
 	
 	
-	public boolean equals(MemeEndroit e) {
-		if(e.getLocS() == this.locS && e.getLocT() == this.locT && e.getNumeroS() == numeroS && e.getNumeroT() == numeroT && e.getEcart() == ecart) {
+	@Override
+	public boolean equals(Object obj) {
+		if(obj==this)
 			return true;
-		}
-		return false;
+		if(obj==null)
+			return false;
+		if(!(obj instanceof MemeEndroit))
+			return false;
+		MemeEndroit o = (MemeEndroit) obj;
+		if(!locS.contentEquals(o.locS))
+			return false;
+		if(!locT.contentEquals(o.locT))
+			return false;
+		if(o.ecart!=this.ecart)
+			return false;
+		if(!numeroS.contentEquals(o.numeroS))
+			return false;
+		if(!numeroT.contentEquals(o.numeroT))
+			return false;
+		return true;
 	}
 	
 	@Override
