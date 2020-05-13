@@ -42,17 +42,36 @@ public class GrapheTrajet implements java.io.Serializable{
 	public GrapheTrajet(int jour) throws IOException {
 		this.jour = jour;
 		g = new SimpleDirectedWeightedGraph<String, ArcTrajet>(ArcTrajet.class);
-		List<Ligne> tram = Donnees.ChargerDonnees("src\\keolis_tram", jour);
-		List<Ligne> bus = Donnees.ChargerDonnees("src\\keolis_bus", jour);
 		
-		ajouterSommets(tram,0);
-		ajouterSommets(bus,1);
-		ajouterAretesDeTransport(tram,0);
-		ajouterAretesDeTransport(bus,1);
-		ajouterAretesMarche();
-		ajouterAretesAttenteTrajets();
-		g.addVertex("depart");
-		g.addVertex("arrivee");
+		// sauvegarde tram et bus
+		//SerializeGrapheTrajet.saveTramEtBus(jour);
+		
+		// charge tram et bus
+		//List<Ligne> tram = SerializeGrapheTrajet.loadTram(jour);
+		//List<Ligne> bus = SerializeGrapheTrajet.loadBus(jour);
+		
+		// charger les sommets pour tous les jours
+		//ajouterSommets(tram, 0); 
+		//ajouterSommets(bus, 1);
+		
+		// sauvegarde aretes de transport
+		//ajouterAretesDeTransport(tram, 0); // ok (a faire lors du lancement de la carte - load tram avant)
+		//ajouterAretesDeTransport(bus, 1); // ok (a faire lors du lancement de la carte - load bus avant)
+		
+		// sauvegarde aretes attente meme station
+		//creerArretesAttenteMemeStation(1); // inutiles pour les trams sur bordeaux
+		//ajouterAttente();
+		
+		// sauvegarde aretes attente en fonction de marche
+		//creerAretesAttenteEnFonctionDeMarche(); 
+		
+		// sauvegarde aretes de marche
+		
+
+		//ajouterAretesMarche(); //  ok (a faire lors du lancement de l'interface)
+		//ajouterAretesAttenteTrajets(); // en cours - besoin des vertex (fait pour jour 3-) (a faire lors du lancement de la carte)
+
+		
 	} 
 	
 	private void ajouterAttente() {
