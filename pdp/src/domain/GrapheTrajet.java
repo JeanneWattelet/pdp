@@ -70,10 +70,75 @@ public class GrapheTrajet implements java.io.Serializable{
 
 		//ajouterAretesMarche(); //  ok (a faire lors du lancement de l'interface)
 		//ajouterAretesAttenteTrajets(); // en cours - besoin des vertex (fait pour jour 3-) (a faire lors du lancement de la carte)
-
+		
+		// test
+		/*List<ArcTrajet> l1 = SerializeGrapheTrajet.deserialiserGrapheTrajet(jour);
+		for(int i = 0; i < l1.size(); i++) {
+			ArcTrajet a = l1.get(i);
+			if(!g.containsVertex(a.getSourceT())) {
+				g.addVertex(a.getSourceT());
+			}
+			if(!g.containsVertex(a.getTargetT())) {
+				g.addVertex(a.getTargetT());
+			}
+			if(!a.getSourceT().contains(a.getTargetT())) {
+				g.addEdge(a.getSourceT(), a.getTargetT(), a);
+				g.setEdgeWeight(a.getSourceT(), a.getTargetT(), a.getWeightT());
+			}
+		}
+		System.out.println(g.vertexSet());*/
 		
 	} 
 	
+	private void reduceAretesMarche() {
+		List<ArcTrajet> l = new ArrayList<ArcTrajet>();
+
+		try {
+			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/someData/aretesMarche" + jour + ".dat"));	
+			l = (List<ArcTrajet>) load.readObject();
+			System.out.println(l.size());
+			load.close();
+		}
+		catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+		
+		for(int i = 0; i < l.size(); i++) {
+			System.out.println(i);
+			ArcTrajet a = l.get(i);
+			if(a.getSourceT() != null && a.getTargetT() != null) {
+				String s1 = a.getSourceT();
+				String s2 = a.getTargetT();
+				Horaire h1 = trouverHoraire(s1);
+				Horaire h2 = trouverHoraire(s2);
+				int to1 = toSec(h1);
+				int to2 = toSec(h2);
+				
+				
+				if(a.getWeightT() < 1000 && Math.abs(to1 - to2) < 1800) {
+					ArcTrajet tmp = addWeightedEdge(a.getSourceT(), a.getTargetT(), a.getWeightT(), Ligne.PIED, Ligne.PIED);
+				}
+			}
+		}
+		List<ArcTrajet> lEnd = new ArrayList<ArcTrajet>();
+		lEnd.addAll(g.edgeSet());
+		System.out.println(lEnd.size());
+
+		try {
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesMarcheSimplifier" + jour + ".dat"));
+			save.writeObject(lEnd);
+			save.close();
+		}
+		catch(Exception e) {
+
+		}
+		
+	}
+
+	private int toSec(Horaire h2) {
+		return h2.getHeure()*3600+h2.getMinute()*60+h2.getSeconde();
+	}
+
 	private void ajouterAttente() {
 		List<MemeEndroit> l = new ArrayList<MemeEndroit>();
 		List<String> listS = new ArrayList<String>();
@@ -81,7 +146,7 @@ public class GrapheTrajet implements java.io.Serializable{
 		List<MemeEndroit> best = new ArrayList<MemeEndroit>();
 
 		try {
-			ObjectInputStream save = new ObjectInputStream(new FileInputStream("src/dataSommetsAretes/MemeEndroit" + jour + ".dat"));
+			ObjectInputStream save = new ObjectInputStream(new FileInputStream("src/someData/MemeEndroit" + jour + ".dat"));
 			l = (List<MemeEndroit>) save.readObject();
 			save.close();
 		}
@@ -123,7 +188,7 @@ public class GrapheTrajet implements java.io.Serializable{
 		lEnd.addAll(g.edgeSet());
 
 		try {
-			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/aretesAttenteMemeEndroitBus" + jour + ".dat"));
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesAttenteMemeEndroitBus" + jour + ".dat"));
 			save.writeObject(lEnd);
 			save.close();
 		}
@@ -137,12 +202,12 @@ public class GrapheTrajet implements java.io.Serializable{
 		List<Ligne> tran = new ArrayList<Ligne>();
 		try {
 			if(p ==0) {
-				ObjectInputStream save = new ObjectInputStream(new FileInputStream("src/dataSommetsAretes/tram" + jour + ".dat"));
+				ObjectInputStream save = new ObjectInputStream(new FileInputStream("src/someData/tram" + jour + ".dat"));
 				tran = (List<Ligne>) save.readObject();
 				save.close();
 			}
 			else if(p ==1) {
-				ObjectInputStream save2 = new ObjectInputStream(new FileInputStream("src/dataSommetsAretes/bus" + jour + ".dat"));
+				ObjectInputStream save2 = new ObjectInputStream(new FileInputStream("src/someData/bus" + jour + ".dat"));
 				tran = (List<Ligne>) save2.readObject();
 				save2.close();
 			}
@@ -202,17 +267,17 @@ public class GrapheTrajet implements java.io.Serializable{
 
 		try {
 			if(p == 0) {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/aretesAttenteOKTram" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/MemeEndroit" + jour + ".dat"));
 				save.writeObject(l1);
 				save.close();
 			}
 			else if(p==1) {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/MemeEndroit" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/MemeEndroit" + jour + ".dat"));
 				save.writeObject(lEnd);
 				save.close();
 			}
 			else {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/aretesAttenteOKOther" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/MemeEndroit" + jour + ".dat"));
 				save.writeObject(l1);
 				save.close();
 			}
