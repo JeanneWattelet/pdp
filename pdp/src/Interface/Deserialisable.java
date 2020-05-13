@@ -9,29 +9,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import de.fhpotsdam.unfolding.geo.Location;
 import domain.ArcTrajet;
 
 public class Deserialisable  {
 
 	public static void Deserialize() {
 
-		List<ArcTrajet> listStats = new ArrayList<ArcTrajet>();		
 		try {
 			ObjectInputStream entry = new ObjectInputStream(new FileInputStream("src/saves/schedule.dat"));
-			String last = (String) entry.readObject();
-			int size = (int) entry.readDouble();
-
-			for (int i=0; i<size; i++) {
-				ArcTrajet arc= new ArcTrajet();
-				arc = (ArcTrajet) entry.readObject();
-
-				listStats.add(arc);
-
-			}		
-			entry.close();
-			Other.end = last;
-			Other.listStations.clear();
-			Other.listStations.addAll(listStats);
+			Other.start = (String) entry.readObject();
+			Other.end = (String) entry.readObject();
+			Other.objectif = (int) entry.readObject();
+			Other.listStations = (List<ArcTrajet>) entry.readObject();
+			Other.listNameStations = (List<String>) entry.readObject();
+			Other.listHoraire = (List<String>) entry.readObject();
+			Other.listCoordStations = (List<Location>) entry.readObject();
+			Other.listNumeroStations = (List<String>) entry.readObject();
 		}
 		catch (Exception e){
 
