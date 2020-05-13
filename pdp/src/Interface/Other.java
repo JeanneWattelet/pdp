@@ -1,9 +1,7 @@
 package Interface;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -12,9 +10,11 @@ import org.jgrapht.graph.SimpleWeightedGraph;
 
 import de.fhpotsdam.unfolding.examples.animation.Edge;
 import de.fhpotsdam.unfolding.examples.animation.FadeTwoMapsApp;
+import de.fhpotsdam.unfolding.examples.animation.InfoStation;
 import de.fhpotsdam.unfolding.examples.animation.PositionInCity;
 import de.fhpotsdam.unfolding.geo.Location;
 import domain.ArcTrajet;
+import domain.ChercherChemin;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -34,6 +34,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import transport.Coordonnees;
 
 // CLASSE INTERFACE
 public class Other extends Application {
@@ -41,8 +42,8 @@ public class Other extends Application {
 	/////////////////////////////////////////////////// PARAMETERS ///////////////////////////////////////////////////
 
 	// width and height of the canvas 
-	private final static double WIDTH = 800;
-	private final static double HEIGHT = 800;
+	private final static double WIDTH = 600;
+	private final static double HEIGHT = 600;
 	// zone of canvas used without menu bar
 	private final static double bestWidth = WIDTH*0.9375;
 	private final static double bestHeight = HEIGHT*0.9375;
@@ -64,7 +65,7 @@ public class Other extends Application {
 	// date and route when search a route
 	public String date;
 	// objective of the solver (0 : fast, 1 : less walking, 2 : less transports, 3 : less waiting time)
-	private int objectif = 0;
+	public static int objectif = 0;
 	// start location
 	private Location startLocation = new Location(0,0);
 	// end location
@@ -84,6 +85,8 @@ public class Other extends Application {
 	private List<String> listBanned = new ArrayList<String>();
 	// all locations possible
 	private List<PositionInCity> allLocations = new ArrayList<PositionInCity>();
+	// info stations
+	private List<String> infoStations = new ArrayList<String>();
 
 	// line chosen in perturbation or schedule
 	private String line;
@@ -111,8 +114,8 @@ public class Other extends Application {
 	private Image imgAboutUs = new Image(getRessourcePathByName("aboutUs.png"), bW2, bH2, false, false);
 	private Image imgLeave = new Image(getRessourcePathByName("leave.jpg"), bestWidth/15, bestHeight/15, false, false);
 	private Image imgLoad = new Image(getRessourcePathByName("load.png"), bestWidth/15, bestHeight/15, false, false);
-	private Image imgSave = new Image(getRessourcePathByName("save.jpg"), bestWidth/15, bestHeight/15, false, false);
-	private Image imgPrevious = new Image(getRessourcePathByName("previous.jpg"), bestWidth/15, bestHeight/15, false, false);
+	private Image imgSave = new Image(getRessourcePathByName("save.png"), bestWidth/15, bestHeight/15, false, false);
+	private Image imgPrevious = new Image(getRessourcePathByName("previous.png"), bestWidth/15, bestHeight/15, false, false);
 	private Image imgDetail = new Image(getRessourcePathByName("detail.jpg"), bestWidth/15, bestHeight/15, false, false);
 
 	private Image imgBus = new Image(getRessourcePathByName("bus.png"), bestWidth/12, bestHeight/12, false, false);
@@ -124,6 +127,8 @@ public class Other extends Application {
 
 	// list of circles 
 	private static List<Circle> circles;
+	// res of best path
+	public static int tempsFinal;
 	// number of circles
 	private final static int nbrCercle = 10;
 	// circles of perturbations set
@@ -153,28 +158,22 @@ public class Other extends Application {
 
 	// move circles to its good position
 	public void moveCirclesTo(int a, int b) {
-		int j=3;
-		if(a == -1) {
-			j--;
-		}
 		for(int i = 0; i<nbrCercle-2; i++) {
-			if(i == a || i == b) {
-				circles.get(i).putTo((WIDTH-25)-50*j, HEIGHT-25);
-				j--;
-			}
-			else {
-				circles.get(i).putTo(-500, -500);
-			}
+			circles.get(i).putTo(-500, -500);
+		}
+		circles.get(a).putTo(bestWidth - 2*bestWidth/15, bestHeight + bestWidth/30);
+		if(b != -1) {
+			circles.get(b).putTo(bestWidth - 3*bestWidth/15, bestHeight + bestWidth/30);
 		}
 	}
 
 	// move break to its position
 	public void moveCircleTo(int a) {
 		if(a == 8) {
-			circles.get(a).putTo(WIDTH-75, HEIGHT-25);
+			circles.get(a).putTo(bestWidth - bestWidth/15, bestHeight + bestWidth/30);
 		}
 		else {
-			circles.get(a).putTo(WIDTH-125, HEIGHT-25);
+			circles.get(a).putTo(bestWidth - 2*bestWidth/15, bestHeight + bestWidth/30);
 		}
 	}
 
@@ -184,7 +183,7 @@ public class Other extends Application {
 		circles.get(1).putTo(bW2+bW2/2,bH2/2);
 		circles.get(2).putTo(bW2/2,bH2+bH2/2);
 		circles.get(3).putTo(bW2+bW2/2,bH2+bH2/2);
-		circles.get(9).putTo(WIDTH-25,HEIGHT-25);
+		circles.get(9).putTo(bestWidth + bestWidth/30, bestHeight + bestWidth/30);
 		for(int i = 4; i<9; i++) {
 			circles.get(i).putTo(-500, -500);
 		}
@@ -197,7 +196,7 @@ public class Other extends Application {
 
 		if(action != "first") {
 			if(action == "schedule"){
-				moveCirclesTo(-1,7); // OK-Previous-Load
+				moveCirclesTo(7, -1); // OK-Previous-Load
 			}
 			else if(action == "load" || action == "detailSchedule" || action == "save" || action == "detailRoute") {
 				moveCirclesTo(5,6); // carte-save-Previous
@@ -215,7 +214,23 @@ public class Other extends Application {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////// USEFUL FUNCTIONS ///////////////////////////////////////////
-
+	
+	// transform second on a real time
+	private String toTime(String sec) {
+		double s = Integer.parseInt(sec);
+		int h = 0;
+		int m = 0;
+		while(s-3600 >= 0) {
+			s=s-3600;
+			h++;
+		}
+		while(s-60 >= 0) {
+			s=s-60;
+			m++;
+		}
+		return (int)h+"h"+(int)m+"m"+(int)s+"s";
+	}
+	
 	// previous action
 	private String previous(){
 		if(action == "schedule" || action == "aboutUs" || action == "perturbation" || action == "route"){
@@ -225,6 +240,7 @@ public class Other extends Application {
 			return "schedule";
 		}
 		else if(action == "detailSchedule" || action == "save"){
+			reinitializeRoute();
 			return "schedule";
 		}
 		else if(action == "detailRoute"){
@@ -239,20 +255,39 @@ public class Other extends Application {
 		return action;
 	}
 
+	// reinitialize data of route
+	private void reinitializeRoute() {
+		start = "";
+		end = "";
+		listStations = new ArrayList<ArcTrajet>();
+		listNameStations = new ArrayList<String>();
+		listHoraire = new ArrayList<String>();
+		listCoordStations = new ArrayList<Location>();
+	}
+
 	// test the station validity
-	private boolean isValid(String s, int k) {
-		return true;
+	private boolean isValid(String s) {
+		if(s == "bus" || s == "tram") {
+			return true;
+		}
+		for(int i = 0; i < infoStations.size(); i++) {
+			if(s.equals(infoStations.get(i))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// test the start and end validity
-	private boolean isValid(String s, String t) {
+	private boolean isValid(String s, String t, String city, String city2) {
+		// need to verify name cities validity before or arrange it if not write correctly
 
 		int k = 0;
 		while((startLocation.getLat() == 0 || endLocation.getLat() == 0) && k < allLocations.size()) {
-			if(allLocations.get(k).getString().toLowerCase().equals((String) s.toLowerCase())) {
+			if(allLocations.get(k).getString().toLowerCase().equals((String) s.toLowerCase() + city.toLowerCase())) {
 				startLocation = allLocations.get(k).getLocation();
 			}
-			else if(allLocations.get(k).getString().toLowerCase().equals((String) t.toLowerCase())) {
+			else if(allLocations.get(k).getString().toLowerCase().equals((String) t.toLowerCase() + city2.toLowerCase())) {
 				endLocation = allLocations.get(k).getLocation();
 			}
 			k++;
@@ -262,6 +297,18 @@ public class Other extends Application {
 			return true;
 		}
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void chargeInfoStations() {
+		try {
+			ObjectInputStream entry = new ObjectInputStream(new FileInputStream("src/data1/infoLignes.dat"));
+			infoStations = (List<String>) entry.readObject();
+			entry.close();
+		}
+		catch(Exception e) {
+			System.out.println("Error : " + e.getMessage());
+		}
 	}
 
 	// charge all location possible
@@ -277,49 +324,6 @@ public class Other extends Application {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private void saveCircles() {
-		try {
-			ObjectOutputStream entry = new ObjectOutputStream(new FileOutputStream("src/data1/allCircles.dat"));
-			
-			// initialize circles
-			Circle circleSchedule = new Circle(bW2/2);
-			Circle circleRoute = new Circle(bW2/2);
-			Circle circlePerturbation = new Circle(bW2/2);
-			Circle circleAboutUs = new Circle(bW2/2);
-			Circle circleLeave = new Circle(bestWidth/30);
-			Circle circleLoad = new Circle(bestWidth/30);
-			Circle circleSave = new Circle(bestWidth/30);
-			Circle circlePrevious = new Circle(bestWidth/30);
-			Circle circleOther = new Circle(bestWidth/30);
-			Circle circleDetail = new Circle(bestWidth/30);
-
-			// initialize list of this circles
-			circles = new ArrayList<Circle>();
-			circles.add(circleSchedule);circles.add(circleRoute);circles.add(circlePerturbation);
-			circles.add(circleAboutUs);circles.add(circleOther);circles.add(circleDetail);
-			circles.add(circleSave);circles.add(circleLoad);circles.add(circlePrevious);circles.add(circleLeave);
-			
-			entry.writeObject(circles);
-			entry.close();
-		}
-		catch(Exception e) {
-			System.out.println("Error : " + e.getMessage());
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private void loadCircles() {
-		try {
-			ObjectInputStream entry = new ObjectInputStream(new FileInputStream("src/data1/allCircles.dat"));
-			circles = (List<Circle>) entry.readObject();
-			entry.close();
-		}
-		catch(Exception e) {
-			System.out.println("Error : " + e.getMessage());
-		}
-	}
-	
 	@SuppressWarnings("unchecked")
 	private void chargeGrapheOfWalkTime() {
 		try {
@@ -336,9 +340,9 @@ public class Other extends Application {
 
 	/////////////////////////////////////////////////// MAIN FUNCTION //////////////////////////////////////////////	
 
-	/*public static void main(String[] args) {
+	public static void main(String[] args) {
 		launch(args);
-	}*/
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -348,7 +352,7 @@ public class Other extends Application {
 	public void start(final Stage stage) {
 		
 		///////////////////////////////////////////// INITALIZATION ////////////////////////////////////////////
-		
+
 		// initialize canvas and display
 		stage.setTitle("Projet de programmation");
 		stage.setResizable(false); // can't change size
@@ -363,8 +367,12 @@ public class Other extends Application {
 
 		// initialize  perturbations 
 		listBanned = Deserialisable.takePerturbations();
-		
+
+		// initialize graphe of walk
 		chargeGrapheOfWalkTime();
+
+		// initialize informations of stations
+		chargeInfoStations();
 
 		// initialize all locations
 		chargeAllLocations();
@@ -374,11 +382,33 @@ public class Other extends Application {
 		imgListTransport.add(imgTram);
 		imgListTransport.add(imgMarche);
 
-		// load circles
-		loadCircles();
+		// initialize circles
+		Circle circleSchedule = new Circle(bW2/2);
+		Circle circleRoute = new Circle(bW2/2);
+		Circle circlePerturbation = new Circle(bW2/2);
+		Circle circleAboutUs = new Circle(bW2/2);
+		Circle circleLeave = new Circle(bestWidth/30);
+		Circle circleLoad = new Circle(bestWidth/30);
+		Circle circleSave = new Circle(bestWidth/30);
+		Circle circlePrevious = new Circle(bestWidth/30);
+		Circle circleOther = new Circle(bestWidth/30);
+		Circle circleDetail = new Circle(bestWidth/30);
+
+		// initialize list of this circles
+		circles = new ArrayList<Circle>();
+		circles.add(circleSchedule);circles.add(circleRoute);circles.add(circlePerturbation);
+		circles.add(circleAboutUs);circles.add(circleOther);circles.add(circleDetail);
+		circles.add(circleSave);circles.add(circleLoad);circles.add(circlePrevious);circles.add(circleLeave);
 
 		// initialize circle's position
 		moveToMenu();
+
+		// to choose the objective
+		HBox buttonCheck = new HBox();
+		CheckBox check0 = new CheckBox();
+		CheckBox check1 = new CheckBox();
+		CheckBox check2 = new CheckBox();
+		CheckBox check3 = new CheckBox();
 
 		///////////////////////////////////////////// MOUSE EVENT /////////////////////////////////////////
 
@@ -427,7 +457,13 @@ public class Other extends Application {
 				}
 				else if(circles.get(7).isInside(pointClick)){
 					action = "load";
+
 					Deserialisable.Deserialize(); // load the route saved
+
+					if(listStations.size() == 0) {
+						action = previous();
+					}
+
 				}
 				else if(circles.get(8).isInside(pointClick)){
 					action = previous();
@@ -562,30 +598,31 @@ public class Other extends Application {
 			public void handle(long arg0){
 
 				gc.drawImage(imgFond, 0, 0); // background
-				if(action != "first") {
-					gc.drawImage(imgPrevious, bestWidth-50, bestHeight); // exit
-				}
-				
 
 				if(action == "schedule" || action == "route" || action == "perturbation"){
 					if(action == "route" || action == "perturbation") {
 
 						if(action == "perturbation") {
 
-							gc.fillText("Une ligne a eviter ??", bestWidth*0.38 , bestHeight*0.2);
+							gc.fillText("Une ligne a eviter ??", bestWidth*0.35, bestHeight*0.2);
 
 							if(listBanned.size() > 0) {
 								// draw lines to avoid
 								for(int i = 0; i < listBanned.size(); i++) {
 									double putX = (bestWidth/10)*(i+1);
 									double putY = 1.25*bH2;
-									gc.drawImage(new Image(getLogoPathByName(listBanned.get(i)), bestWidth/15, bestHeight/15, false, false), putX, putY);
+									try {
+										gc.drawImage(new Image(getLogoPathByName(listBanned.get(i)), bestWidth/15, bestHeight/15, false, false), putX, putY);
+									}
+									catch(Exception e) {
+
+									}
 								}
 							}
 
 						}
 						else {
-							gc.fillText("Chercher un horaire", bestWidth*0.38, bestHeight*0.2);
+							gc.fillText("Chercher un horaire", bestWidth*0.35, bestHeight*0.2);
 						}
 						gc.fillText("Ligne", bestWidth*0.5 , bestHeight*0.33, 30);
 
@@ -600,7 +637,7 @@ public class Other extends Application {
 							TextField.setMaxHeight(bestWidth/75);
 
 							// button to click
-							Button buttonOK = new Button("LAUNCH");
+							Button buttonOK = new Button("RECHERCHER");
 							buttonOK.setOnAction(new EventHandler<ActionEvent>() {
 								public void handle(ActionEvent event) {
 									line = TextField.getText();
@@ -609,7 +646,7 @@ public class Other extends Application {
 										action = "horaries";
 									}
 									else {
-										if(listBanned.size() < 9 && !line.isEmpty() && isValid(line, 3) && !listBanned.contains(line)) { // put bus, tram or a line's number to avoid it (limited to 9)
+										if(listBanned.size() < 9 && !line.isEmpty() && isValid(line) && !listBanned.contains(line)) { // put bus, tram or a line's number to avoid it (limited to 9)
 											Serialisable.retainPerturbation(line); // retain perturbation in memory
 											listBanned.clear();
 											listBanned = Deserialisable.takePerturbations(); // new list of lines banned
@@ -628,9 +665,9 @@ public class Other extends Application {
 							});
 
 							// updating position in root
-							TextField.setTranslateX(bestWidth*0.43);
+							TextField.setTranslateX(bestWidth*0.41);
 							TextField.setTranslateY(bestHeight*0.35);
-							buttonOK.setTranslateX(bestWidth*0.485);
+							buttonOK.setTranslateX(bestWidth*0.465);
 							buttonOK.setTranslateY(bestHeight*0.5);
 
 							root.getChildren().addAll(TextField, buttonOK);
@@ -641,57 +678,50 @@ public class Other extends Application {
 
 					}
 					else if(action == "schedule"){
-						gc.drawImage(imgLoad, bestWidth-100, bestHeight);
-						gc.fillText("Chercher un itineraire", bestWidth*0.375 , bestHeight*0.2);
-						gc.fillText("Plus rapide", bestWidth*0.14, bestHeight*0.495, bestWidth*0.08);
-						gc.fillText("Moins de marche", bestWidth*0.36, bestHeight*0.495, bestWidth*0.12);
-						gc.fillText("Moins de transport", bestWidth*0.58, bestHeight*0.495, bestWidth*0.12);
-						gc.fillText("Moins d'attente", bestWidth*0.8, bestHeight*0.495, bestWidth*0.11);
-						gc.fillText("Heure de depart", bestWidth*0.3, bestHeight*0.586, bestWidth*0.11);
-						gc.fillText("Ou", bestWidth*0.5, bestHeight*0.64, bestWidth*0.6);
-						gc.fillText("Arrivée avant", bestWidth*0.3, bestHeight*0.697, bestWidth*0.10);
+						gc.drawImage(imgLoad, bestWidth - 2*bestWidth/15 - bestWidth/30, bestHeight);
+						gc.fillText("Chercher un itineraire", bestWidth*0.35 , bestHeight*0.2);
+
+						gc.fillText("Plus rapide", bestWidth*0.1*1.35, bestHeight*0.495, bestWidth*0.08);
+						gc.fillText("Moins de marche", bestWidth*0.3*1.25, bestHeight*0.495, bestWidth*0.11);
+						gc.fillText("Moins de transport", bestWidth*0.5*1.23, bestHeight*0.495, bestWidth*0.11);
+						gc.fillText("Moins d'attente", bestWidth*0.7*1.215, bestHeight*0.495, bestWidth*0.11);
+						gc.fillText("Heure de depart", bestWidth*0.43*0.65, bestHeight*0.586, bestWidth*0.11);
+						gc.fillText("ou", bestWidth*0.52, bestHeight*0.643, bestWidth*0.03);
+						gc.fillText("Arrivée avant", bestWidth*0.43*0.7, bestHeight*0.697, bestWidth*0.10);
+
 
 						if(countButtonOk == 0) { // added one time to the root
 
 							// text areas
-							final TextField TextField = new TextField();
-							//TextField.setPromptText(" Adresse de départ ");
-							TextField.setText("46 rue jules guesde");
-							final TextField TextField2 = new TextField();
-							//TextField2.setPromptText(" Adresse d'arrivée ");
-							TextField2.setText("29 rue Charles Domercq");
-							final TextField TextField3 = new TextField();
-							Date date = new Date();
-							TextField3.setText(date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
-							final TextField TextField4 = new TextField();
+							TextField TextField = new TextField();
+							TextField TextField2 = new TextField();
+							TextField TextField3 = new TextField();
+							TextField TextField4 = new TextField();
+							TextField TextField5 = new TextField();
+							TextField TextField6 = new TextField();
+
+							TextField.setPromptText(" Adresse de depart ");
+							//TextField.setText("46 rue jules guesde");
+							TextField2.setPromptText(" Adresse d'arrivee ");
+							//TextField2.setText("48 rue jules guesde");
+							Date d = new Date();
+							TextField3.setText(d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds());
 							TextField4.setPromptText("00:00:00");
+							TextField5.setText("Bordeaux");
+							TextField6.setText("Bordeaux");
 
-							// to choose the objective
-							HBox buttonCheck = new HBox();
-							CheckBox check0 = new CheckBox();
-							CheckBox check1 = new CheckBox();
-							CheckBox check2 = new CheckBox();
-							CheckBox check3 = new CheckBox();
-
-							// updating size
-							TextField.setMaxWidth(bestWidth*0.5);
-							TextField.setMaxHeight(bestHeight/75);
-							TextField2.setMaxWidth(bestWidth*0.5);
-							TextField2.setMaxHeight(bestHeight/75);
-							TextField3.setMaxWidth(bestWidth*0.5);
-							TextField3.setMaxHeight(bestHeight/75);
-							TextField4.setMaxWidth(bestWidth*0.5);
-							TextField4.setMaxHeight(bestHeight/75);
-							
+							buttonCheck.setPrefSize(bestWidth*0.5, bestHeight/75);
 
 							// button launch
-							Button buttonOK = new Button("LAUNCH");
+							Button buttonOK = new Button("RECHERCHER");			
+
 							buttonOK.setOnAction(new EventHandler<ActionEvent>() {
 								public void handle(ActionEvent event) {
 
 									// useful to find the better route
 									start = TextField.getText(); 
 									end = TextField2.getText();
+									date = TextField3.getText(); 
 
 									if(check0.isSelected()) {
 										objectif = 0;
@@ -703,69 +733,102 @@ public class Other extends Application {
 										objectif = 2;
 									}
 									else if(check3.isSelected()) {
-										objectif = 3;
+										objectif = 4;
 									}
 									else {
 										objectif = -1;
 									}
 
-
-									if(isValid(start, end) &&  objectif != -1) { // check validity
+									if(isValid(start, end, TextField5.getText(), TextField6.getText()) &&  objectif != -1) { // check validity
 										action = "detailSchedule";
 										moveTo();
 										listStations = new ArrayList<ArcTrajet>();
-										//List<ArcTrajet> listStation = astar(start, end, date, objectif); // launch ASTAR or DJIKSTRA
+										String dateEnd = TextField4.getText();
 
-										////////////////////////////////////////////////////////// EXAMPLES ////////////////////////////////////////////////////////////
+										if(objectif != 4) {
+											listNameStations = new ArrayList<String>();
+											listNumeroStations = new ArrayList<String>();
+											listHoraire = new ArrayList<String>();
+											listCoordStations = new ArrayList<Location>();
 
-										
-
-										// nom des stations a changer 60 -> Tram B 
-										ArcTrajet e = new ArcTrajet(2, "kkpart%17:00:00&44.804;-0.600", "Arts et Metiers%17:10:00&44.805983;-0.602284", "0");
-										ArcTrajet e0 = new ArcTrajet(0, "Arts et Metiers%17:10:00&44.805983;-0.602284", "Quinconces B%17:20:00&44.844469;-0.573792", "60");
-										ArcTrajet e1 = new ArcTrajet(2, "Quinconces B%17:20:00&44.844469;-0.573792", "Quinconces C%17:30:00&44.84420;-0.57195", "0");
-										ArcTrajet e2 = new ArcTrajet(0, "Quinconces C%17:30:00&44.84420;-0.57195", "Gare St-Jean%17:40:00&44.825918;-0.556807", "61");
-										listStations.add(e);
-										listStations.add(e0);
-										listStations.add(e1);
-										listStations.add(e2);
-										
-										startLocation = new Location(44.804,-0.600);
-										
-										
-										
-										///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////									
-
-
-										listNameStations = new ArrayList<String>();
-										listNumeroStations = new ArrayList<String>();
-										listHoraire = new ArrayList<String>();
-										listCoordStations = new ArrayList<Location>();
-										
-										listCoordStations.add(startLocation);
-										
-										for(int i = 0; i < listStations.size(); i++) {
-											listNumeroStations.add(listStations.get(i).getNom());
+											Coordonnees p1 = new Coordonnees(startLocation.getLat(), startLocation.getLon());
+											boolean partirA = true;
+											if(dateEnd == "") {
+												partirA = false;
+											}
+												
 											
-											int index1 = listStations.get(i).getFrom().indexOf("%");
-											int index2 = listStations.get(i).getFrom().indexOf("&");
-											int index3 = listStations.get(i).getFrom().indexOf(";");
 											
-											listNameStations.add(listStations.get(i).getFrom().substring(0, index1));
-											listHoraire.add(listStations.get(i).getFrom().substring(index1+1, index2));
-											if(i != 0) {
-												listCoordStations.add(new Location(Double.parseDouble(listStations.get(i).getFrom().substring(index2+1, index3)), Double.parseDouble(listStations.get(i).getFrom().substring(index3+1))));
+											ChercherChemin c = new ChercherChemin();
+											c.chercherChemin(start, end, dateEnd, 7, objectif, partirA);
+										
+											
+											////////////////////////////////////////////////////////// EXAMPLES ////////////////////////////////////////////////////////////
+											
+											// sourceT not present
+											/*ArcTrajet startArc = new ArcTrajet(2, start + "%" + p1 + "%17:00:00", "Arts et Metiers%44.805983;-0.602284%17:10:00", "marche");
+
+											ArcTrajet e0 = new ArcTrajet(0, "Arts et Metiers%44.805983;-0.602284%17:10:00", "Quinconces B%44.844469;-0.573792%17:20:00", "Tram B");
+											ArcTrajet e1 = new ArcTrajet(2, "Quinconces B%44.844469;-0.573792%17:20:00", "Quinconces C%44.84420;-0.57195%17:30:00", "marche");
+											ArcTrajet e2 = new ArcTrajet(0, "Quinconces C%44.84420;-0.57195%17:30:00", "Gare St-Jean%44.825918;-0.556807%17:40:00", "Tram C");
+
+											listStations.add(startArc);
+											listStations.add(e0);
+											listStations.add(e1);
+											listStations.add(e2);
+											
+											listNameStations.add(start); listNameStations.add("Arts et Metier"); listNameStations.add("Quinconces B"); listNameStations.add("Quinconces C"); listNameStations.add("Gare St_Jean");
+											listCoordStations.add(startLocation); listCoordStations.add(new Location(44.805983,-0.602284)); listCoordStations.add(new Location(44.844469,-0.573792)); listCoordStations.add(new Location(44.84420,-0.57195)); listCoordStations.add(new Location(44.825918,-0.556807));
+											listHoraire.add("600");listHoraire.add("600");listHoraire.add("600");listHoraire.add("600");
+											listNumeroStations.add("marche");listNumeroStations.add("Tram B");listNumeroStations.add("marche");listNumeroStations.add("Tram C");
+											date = "17:00:00";*/
+
+											///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////									
+
+											// to check !!
+											listCoordStations.add(startLocation);
+
+											for(int i = 0; i < listStations.size(); i++) {
+												listNumeroStations.add(listStations.get(i).getNom());
+												
+												String[] m = ((String) listStations.get(i).getSourceT()).split("%");
+												int index = m[1].indexOf(";");
+												Double d1 = Double.parseDouble(m[1].substring(0, index));
+												Double d2 = Double.parseDouble(m[1].substring(index+1));
+
+												listNameStations.add(m[0]);
+												listHoraire.add(listStations.get(i).getWeightT() + "");
+												if(i != 0) {
+													listCoordStations.add(new Location(d1,d2));
+												}
+											}
+
+											String[] m = ((String) listStations.get(listStations.size()-1).getSourceT()).split("%");
+											int index = m[1].indexOf(";");
+											Double d1 = Double.parseDouble(m[1].substring(0, index));
+											Double d2 = Double.parseDouble(m[1].substring(index+1));
+											
+											listNameStations.add(m[0]);
+											listCoordStations.add(new Location(d1, d2));
+											
+											System.out.println(listStations);
+											System.out.println(listNameStations);
+											System.out.println(listCoordStations);
+											System.out.println(listHoraire);
+											System.out.println(listNumeroStations);
+											
+											for(int i = 0; i < listHoraire.size(); i++) {
+												tempsFinal += Integer.parseInt(listHoraire.get(i)); 
+												listHoraire.set(i, toTime(listHoraire.get(i)));
 											}
 										}
-										
-										int index1 = listStations.get(listStations.size()-1).getTo().indexOf("%");
-										int index2 = listStations.get(listStations.size()-1).getTo().indexOf("&");
-										int index3 = listStations.get(listStations.size()-1).getTo().indexOf(";");
-										listNameStations.add(listStations.get(listStations.size()-1).getTo().substring(0, index1));
-										listHoraire.add(listStations.get(listStations.size()-1).getTo().substring(index1+1, index2));
-										listCoordStations.add(new Location(Double.parseDouble(listStations.get(listStations.size()-1).getTo().substring(index2+1, index3)), Double.parseDouble(listStations.get(listStations.size()-1).getTo().substring(index3+1))));
-
-
+										else {
+											listCoordStations = new ArrayList<Location>();
+											listCoordStations.add(startLocation);
+											listCoordStations.add(endLocation);
+											FadeTwoMapsApp.OneMain();
+											action = "schedule";
+										}
 									}
 									else { // if one element is not valid 
 										action = "schedule";
@@ -777,15 +840,19 @@ public class Other extends Application {
 							});				        
 
 							// updating position in root
-							TextField.setTranslateX(bestWidth*0.43);
+							TextField.setTranslateX(bestWidth*0.2);
 							TextField.setTranslateY(bestHeight*0.29);
-							TextField2.setTranslateX(bestWidth*0.43);
+							TextField2.setTranslateX(bestWidth*0.2);
 							TextField2.setTranslateY(bestHeight*0.38);
 							TextField3.setTranslateX(bestWidth*0.43);
 							TextField3.setTranslateY(bestHeight*0.56);
 							TextField4.setTranslateX(bestWidth*0.43);
 							TextField4.setTranslateY(bestHeight*0.67);
-							
+							TextField5.setTranslateX(bestWidth*0.6);
+							TextField5.setTranslateY(bestHeight*0.29);
+							TextField6.setTranslateX(bestWidth*0.6);
+							TextField6.setTranslateY(bestHeight*0.38);
+
 							check0.setTranslateX(bestWidth*0.1);
 							check0.setTranslateY(bestHeight*0.47);
 							check1.setTranslateX(bestWidth*0.3);
@@ -794,20 +861,33 @@ public class Other extends Application {
 							check2.setTranslateY(bestHeight*0.47);
 							check3.setTranslateX(bestWidth*0.7);
 							check3.setTranslateY(bestHeight*0.47);
-							
-							buttonOK.setTranslateX(bestWidth*0.48);
+
+							buttonOK.setTranslateX(bestWidth*0.46);
 							buttonOK.setTranslateY(bestHeight*0.8);
 
 							// linked with root
-							buttonCheck.getChildren().addAll(check0, check1, check2, check3);
+							check0.setSelected(true);
+							if(!buttonCheck.getChildren().contains(check0)) {
+								buttonCheck.getChildren().addAll(check0, check1, check2, check3);
+							}
+							
+							root.getChildren().addAll(buttonCheck);
+
 							root.getChildren().addAll(TextField, buttonOK);
 							root.getChildren().addAll(TextField2);
 							root.getChildren().addAll(TextField3);
 							root.getChildren().addAll(TextField4);
-							root.getChildren().addAll(buttonCheck);
+							root.getChildren().addAll(TextField5);
+							root.getChildren().addAll(TextField6);
 
 							wasInSchedule = 1; // used for previous
 
+						}
+						if(check0.isArmed() || check1.isArmed() || check2.isArmed() || check3.isArmed()) {
+							check0.setSelected(false);
+							check1.setSelected(false);
+							check2.setSelected(false);
+							check3.setSelected(false);
 						}
 						countButtonOk++; // added ont time to the root
 					}
@@ -819,7 +899,7 @@ public class Other extends Application {
 					root.getChildren().add(canvas);
 
 					int size = listStations.size();
-					double pos = 0.9*bestWidth/size;
+					double pos = 0.9*bestHeight/size;
 
 					gc.strokeLine(0.5*bW2, 0.5*pos, 0.5*bW2, 0.5*pos + pos*(size-1)); // draw a line
 
@@ -829,26 +909,26 @@ public class Other extends Application {
 						String source = listNameStations.get(i); 
 
 						String weight = listHoraire.get(i);
-						
+
 						gc.drawImage(imgListTransport.get(transport), 0.5*bW2 - imgListTransport.get(transport).getHeight()/2, 0.5*pos + pos*i);
 
-						gc.fillText(source, 0.7*bW2, 0.5*pos + pos*i);
-						
-						gc.fillText(weight, 1.5*bW2, 0.5*pos + pos*i);
+						gc.fillText(source, 0.7*bW2, 0.3*pos + pos*i, bestWidth*0.2);
+
+						gc.fillText(weight, 1.5*bW2, 0.5*pos + pos*i, bestWidth*0.1);
 					}
 
 					int transport = listStations.get(size-1).getTransport();
 					gc.drawImage(imgListTransport.get(transport), 0.5*bW2 - imgListTransport.get(transport).getHeight()/2, 0.5*pos + pos*(size-1));
-					
-					gc.fillText(listNameStations.get(size-1), 0.7*bW2, 0.5*pos + pos*(size-1));
-					gc.fillText(end, 0.7*bW2, 0.5*pos + pos*(size-1) + 1.5*imgListTransport.get(transport).getHeight());
-					
-					gc.fillText(listHoraire.get(size-1), 1.5*bW2, 0.5*pos + pos*(size-1));
-					gc.fillText(listHoraire.get(size), 1.5*bW2, 0.5*pos + pos*(size-1) + 1.5*imgListTransport.get(transport).getHeight());
+
+					gc.fillText(listNameStations.get(size-1), 0.7*bW2, 0.3*pos + pos*(size-1), bestWidth*0.2);
+					gc.fillText(end, 0.7*bW2, 0.4*pos + pos*(size-1) + 1.5*imgListTransport.get(transport).getHeight(), bestWidth*0.2);
+
+					gc.fillText(listHoraire.get(size-1), 1.5*bW2, 0.5*pos + pos*(size-1), bestWidth*0.1);
 
 
-					gc.drawImage(imgSave, bestWidth-100, bestHeight);
-					gc.drawImage(imgDetail, bestWidth-150, bestHeight);
+					gc.drawImage(imgSave, bestWidth - 3*bestWidth/15 - bestWidth/30, bestHeight);
+					gc.drawImage(imgDetail, bestWidth - 2*bestWidth/15 - bestWidth/30, bestHeight);
+
 
 					if (action == "load") {
 						gc.fillText("LOADED", WIDTH/40, HEIGHT -10);
@@ -865,12 +945,18 @@ public class Other extends Application {
 					root.getChildren().clear();
 					root.getChildren().add(canvas);
 
-					if(!isValid(line, 3)) {
+					if(countButtonOk == 1) {
 						countButtonOk = 0;
 						action = "route";
 					}
 					else {
-						gc.drawImage(new Image(getHorariesPathByName(line + ".jpg"), WIDTH, HEIGHT, false, false), 0, 0); 
+						try {
+							gc.drawImage(new Image(getHorariesPathByName(line + ".jpg"), WIDTH, HEIGHT, false, false), 0, 0); 
+						}
+						catch(Exception ex) {
+							action = previous();
+							countButtonOk = 0;
+						}
 					}
 
 				}
@@ -881,7 +967,6 @@ public class Other extends Application {
 						wasInSchedule = 0;
 						root.getChildren().clear();
 						root.getChildren().add(canvas);
-
 					}
 					countButtonOk = 0;
 					gc.drawImage(imgSchedule, 0,0);
@@ -892,7 +977,7 @@ public class Other extends Application {
 				}
 
 				if(action != "first") {
-					gc.drawImage(imgPrevious, bestWidth-50, bestHeight);
+					gc.drawImage(imgPrevious, bestWidth*0.9, bestHeight);
 				}
 				gc.drawImage(imgLeave, bestWidth , bestHeight);
 
@@ -902,12 +987,13 @@ public class Other extends Application {
 				}
 
 				// to draw circles 
-				for(int i = 0; i < nbrCercle; i++) { // put a circle at his position
+				/*for(int i = 0; i < nbrCercle; i++) { // put a circle at his position
 					gc.strokeOval(circles.get(i).getCenterX()-circles.get(i).getRadius(), circles.get(i).getCenterY()-circles.get(i).getRadius(), circles.get(i).getRadius()*2, circles.get(i).getRadius()*2);
-				}
+				}*/
 
 			}
 		};
 		animation.start();
 	}
+	
 }
