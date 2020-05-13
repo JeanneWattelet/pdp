@@ -5,7 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.List;
+
+import transport.Ligne;
 
 
 public class SerializeGrapheTrajet {
@@ -36,7 +39,7 @@ public class SerializeGrapheTrajet {
 		ObjectOutputStream oos = null;
 		
 		try {
-			final FileOutputStream fichier = new FileOutputStream("src\\data1\\ListArcTrajetPied"+j+"bus.ser");
+			final FileOutputStream fichier = new FileOutputStream("src\\data1\\ListArcTrajetPied"+j+"bus.dat");
 			oos = new ObjectOutputStream(fichier);
 			oos.writeObject(lat);
 			oos.flush();
@@ -77,5 +80,64 @@ public class SerializeGrapheTrajet {
 	      }
 	    }
 		return gt;
+	}
+	
+	public static void saveTramEtBus(int jour) {
+		List<Ligne> tram = new ArrayList<Ligne>();
+		List<Ligne> bus = new ArrayList<Ligne>();
+		try {
+			tram = Donnees.ChargerDonnees("src\\keolis_tram", jour);
+			bus = Donnees.ChargerDonnees("src\\keolis_bus", jour);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/tram" + jour + ".dat"));
+			ObjectOutputStream save2 = new ObjectOutputStream(new FileOutputStream("src/someData/bus" + jour + ".dat"));
+			save.writeObject(tram);
+			save2.writeObject(bus);
+			save.close();
+			save2.close();
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+	}
+	
+	public static List<Ligne> loadTram(int jour){
+		List<Ligne> tram = new ArrayList<Ligne>(); 
+		try {
+			ObjectInputStream save = new ObjectInputStream(new FileInputStream("src/someData/tram" + jour + ".dat"));
+			tram = (List<Ligne>) save.readObject();
+			save.close();
+		} catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return tram;
+	}
+	
+	public static List<Ligne> loadBus(int jour){
+		List<Ligne> bus = new ArrayList<Ligne>();
+		try {
+			ObjectInputStream save2 = new ObjectInputStream(new FileInputStream("src/someData/bus" + jour + ".dat"));
+			bus = (List<Ligne>) save2.readObject();
+			save2.close();
+		} catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return bus;
+	}
+	
+	public static List<ArcTrajet> loadAreteAttenteMemeEndroit(int jour) {
+		List<ArcTrajet> l = new ArrayList<ArcTrajet>();
+		try {
+			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/someData/aretesAttenteMemeEndroitBus" + jour + ".dat"));
+			l = (List<ArcTrajet>) load.readObject();
+			load.close();
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+		return l;
 	}
 }
