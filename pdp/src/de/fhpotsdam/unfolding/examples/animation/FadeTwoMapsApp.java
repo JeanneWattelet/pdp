@@ -27,6 +27,7 @@ import de.fhpotsdam.unfolding.marker.Marker;
 import de.fhpotsdam.unfolding.marker.SimpleLinesMarker;
 import de.fhpotsdam.unfolding.providers.Microsoft;
 import de.fhpotsdam.unfolding.utils.MapUtils;
+import domain.ArcTrajet;
 import processing.core.PApplet;
 
 // load map with route
@@ -45,22 +46,25 @@ public class FadeTwoMapsApp extends PApplet {
 	private List<Location> tronconStartAndEndEquals = new ArrayList<Location>();
 
 	private List<Feature> table = new ArrayList<Feature>();
+	
 
+	@SuppressWarnings({"deprecation" })
 	public void setup() {
-		
-		table = GeoJSONReader.loadData(this, "src/data1/fv_tronc_l.geojson");
-		
-		try {
-			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/data1/grapheBx.dat"));
-			loadedGraphe = (SimpleWeightedGraph<String, Edge>) load.readObject();
-			load.close();
-		}
-		catch(Exception e) {
-			System.out.println("Error " + e.getMessage());
-		}
-		
 
-		size(800, 800, OPENGL);
+		loadSomeData();
+
+		// for each city we have to launch 8 functions independent
+
+		//saveSommetsArcs(); // save vectors/edges from troncon
+		//saveGraphe(); System.exit(0); // save graph in file
+		//saveEdgeWalk(); System.exit(0); // save all edge between stations
+		//saveAllPositionStreet(); System.exit(0); // java heap space : -Xmx5g in VM
+		//infoStations(); // save location of each station
+		//infoLignes(); System.exit(0);
+		//exportNumeroStations(); // export numero of the bus or tram of each station
+		//exportListCheminStationsEnTransport(); System.exit(0); // export path between two stations with transport (doesnt work)
+
+		size(600, 600, OPENGL);
 
 		// set the position and size of our map.
 		int mapXposition = 0;
@@ -76,113 +80,160 @@ public class FadeTwoMapsApp extends PApplet {
 		map2.zoomAndPanTo(new Location(lon, lat), 12);
 		MapUtils.createDefaultEventDispatcher(this, map2);
 
-		// import all lines of the city
-		List<Feature> transitLines = GeoJSONReader.loadData(this, "src/data1/MBTARapidTransitLines.json");
+		if(Other.objectif != 4) {
 
-		// create marker from features
-		List<Marker> transitMarkers = new ArrayList<Marker>();
-
-		for (Feature feature : transitLines) {
-			List<Location> line = new ArrayList<Location>();
-
-			// all stations made
-			boolean end = true;
+			// add markers position
 			for(int i = 0; i < Other.listNumeroStations.size(); i++) {
-				if(Other.listNumeroStations.get(i) != "-1" && Other.listNumeroStations.get(i) != "0") {
-					end = false;
+				if(Other.listNumeroStations.get(i) != "marche" && Other.listNumeroStations.get(i) != "attente") {
+					ImageMarker img = new ImageMarker(Other.listCoordStations.get(i), loadImage("src/imgLogo/" + Other.listNumeroStations.get(i) + ".png"));
+					map2.addMarkers(img);
 				}
 			}
-			if(end == true) {
-				break;
-			}
+			ImageMarker img = new ImageMarker(Other.listCoordStations.get(Other.listCoordStations.size()-1), loadImage("src/imgLogo/autres/fin.png"));
+			map2.addMarkers(img);
 
-			ShapeFeature lineFeature = (ShapeFeature) feature; 
-			String numeroStation = lineFeature.getStringProperty("ROUTE");
+			// import all lines of the city
+			List<Feature> transitLines = GeoJSONReader.loadData(this, "src/data1/tb_chem_l.geojson");
 
-			int index = Other.listNumeroStations.indexOf(numeroStation);
+			List<String> listNumeroClone = new ArrayList<String>();
+			listNumeroClone.addAll(Other.listNumeroStations);
 
-			if(index != -1) {
+			// create marker from features
+			List<Marker> transitMarkers = new ArrayList<Marker>();
 
-				int j = 0;
-				boolean areCloth = false;
-				boolean areClothNext = false;
+			for (Feature feature : transitLines) {
+				List<Location> line = new ArrayList<Location>();
 
-				int index1 = 0;
-				int index2 = 0;
-
-				// search the location cloth to the station in lineFeature
-				while(j < lineFeature.getLocations().size()-1) {
-					areCloth = areCloth(Other.listCoordStations.get(index), lineFeature.getLocations().get(j));
-					areClothNext = areCloth(Other.listCoordStations.get(index+1), lineFeature.getLocations().get(j));
-
-					if(index1 != 0 && index2 != 0) {
-						break;
+				// all stations made
+				boolean end = true;
+				for(int i = 0; i < listNumeroClone.size(); i++) {
+					if(listNumeroClone.get(i) != "-1" && listNumeroClone.get(i) != "marche" && listNumeroClone.get(i) != "attente") {
+						end = false;
 					}
-
-					if(areCloth) {
-						index1 = j;
-					}
-					if(areClothNext) {
-						index2 = j;
-					}
-
-					j++;
+				}
+				if(end == true) {
+					break;
 				}
 
-				if(index1 != 0 && index2 != 0) { // if a path exists
+				ShapeFeature lineFeature = (ShapeFeature) feature; 
+				String numeroStation = lineFeature.getStringProperty("nomcomli");
 
-					if(index1 < index2) {
-						for(int i = index1; i <= index2; i++) {
-							line.add(lineFeature.getLocations().get(i));
+				int index = listNumeroClone.indexOf(numeroStation);
+
+				if(index != -1) {
+
+					int j = 0;
+					boolean areCloth = false;
+					boolean areClothNext = false;
+
+					int index1 = 0;
+					int index2 = 0;
+
+					// search the location cloth to the station in lineFeature
+					while(j < lineFeature.getLocations().size()-1) {
+						areCloth = isInside(Other.listCoordStations.get(index), lineFeature.getLocations().get(j), lineFeature.getLocations().get(j+1));
+						areClothNext = isInside(Other.listCoordStations.get(index+1), lineFeature.getLocations().get(j), lineFeature.getLocations().get(j+1));
+
+						if(index1 != 0 && index2 != 0) {
+							break;
 						}
+
+						if(areCloth) {
+							index1 = j;
+						}
+						if(areClothNext) {
+							index2 = j;
+						}
+
+						j++;
+					}
+
+					if(index1 != 0 && index2 != 0) { // if a path exists
+
+						if(index1 < index2) {
+							line.add(Other.listCoordStations.get(index));
+							for(int i = index1+1; i < index2; i++) {
+								line.add(lineFeature.getLocations().get(i));
+							}
+							line.add(Other.listCoordStations.get(index+1));
+						}
+						else {
+							line.add(Other.listCoordStations.get(index+1));
+							for(int i = index2+1; i < index1; i++) {
+								line.add(lineFeature.getLocations().get(i));
+							}
+							line.add(Other.listCoordStations.get(index));
+						}
+
+						listNumeroClone.set(index, "-1");
+
+						SimpleLinesMarker m = new SimpleLinesMarker(line);
+						m.setStrokeWeight(5);
+						m.setColor(255);
+						transitMarkers.add(m);
+
 					}
 					else {
-						for(int i = index2; i <= index1; i++) {
-							line.add(lineFeature.getLocations().get(i));
-						}
+						line.clear();
 					}
-
-					Other.listNumeroStations.set(index, "-1");
-
-					SimpleLinesMarker m = new SimpleLinesMarker(line);
-					m.setStrokeWeight(5);
-					m.setColor(255);
-					transitMarkers.add(m);
-
-				}
-				else {
-					line.clear();
 				}
 			}
-		}
 
-		// walking time
-		for(int i = 0; i < Other.listStations.size()-1; i++) {
-			List<Location> line = new ArrayList<Location>();
-			if(Other.listStations.get(i).getTransport() == 2) {
-				Location s = new Location(Other.listCoordStations.get(i).getLat(), Other.listCoordStations.get(i).getLon());
-				Location t = new Location(Other.listCoordStations.get(i+1).getLat(), Other.listCoordStations.get(i+1).getLon());
+			// walking time
+			for(int i = 0; i < Other.listStations.size()-1; i++) {
+				List<Location> line = new ArrayList<Location>();
+				if(Other.listStations.get(i).getTransport() == 2) {
+					Location s = new Location(Other.listCoordStations.get(i).getLat(), Other.listCoordStations.get(i).getLon());
+					Location t = new Location(Other.listCoordStations.get(i+1).getLat(), Other.listCoordStations.get(i+1).getLon());
+					line = astarWalk(s,t);
+					SimpleLinesMarker m = new SimpleLinesMarker(line);
+					m.setStrokeWeight(5);
+					m.setColor(200);
+					transitMarkers.add(m);
+				}
+			}
+
+			// walk all the time
+			if(transitMarkers.size() == 0) { 
+				List<Location> line = new ArrayList<Location>();
+				Location s = new Location(Other.listCoordStations.get(0).getLat(), Other.listCoordStations.get(0).getLon());
+				Location t = new Location(Other.listCoordStations.get(1).getLat(), Other.listCoordStations.get(1).getLon());
 				line = astarWalk(s,t);
 				SimpleLinesMarker m = new SimpleLinesMarker(line);
 				m.setStrokeWeight(5);
 				m.setColor(200);
 				transitMarkers.add(m);
 			}
+			map2.addMarkers(transitMarkers);
 		}
-
-		// walk all the time
-		if(transitMarkers.size() == 0) { 
+		else {
+			List<Marker> transitMarkers = new ArrayList<Marker>();
 			List<Location> line = new ArrayList<Location>();
 			Location s = new Location(Other.listCoordStations.get(0).getLat(), Other.listCoordStations.get(0).getLon());
 			Location t = new Location(Other.listCoordStations.get(1).getLat(), Other.listCoordStations.get(1).getLon());
 			line = astarWalk(s,t);
 			SimpleLinesMarker m = new SimpleLinesMarker(line);
 			m.setStrokeWeight(5);
-			m.setColor(200);
+			int c = color(255,255,0);
+			m.setColor(c);
 			transitMarkers.add(m);
+			map2.addMarkers(transitMarkers);
+			Other.tempsFinal = (int) sizeTroncon(line);
 		}
+	}
 
-		map2.addMarkers(transitMarkers);
+	@SuppressWarnings("unchecked")
+	private void loadSomeData() {
+		table = GeoJSONReader.loadData(this, "src/data1/fv_tronc_l.geojson");
+
+		try {
+			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/data1/grapheBx.dat"));
+			loadedGraphe = (SimpleWeightedGraph<String, Edge>) load.readObject();
+			load.close();
+		}
+		catch(Exception e) {
+			System.out.println("Error " + e.getMessage());
+		}
 	}
 
 	// solve astar 
@@ -197,11 +248,11 @@ public class FadeTwoMapsApp extends PApplet {
 		String start = sLat + "&" + sLon;
 		String end = tLat + "&" + tLon;
 
-		g.addVertex(start); 
-		g.addVertex(end);
+		loadedGraphe.addVertex(start); 
+		loadedGraphe.addVertex(end);
+
 		loadGraphe(s, t); // load vector and edges which are no far to the middle of the start and the end
 		loadEdgeStartAndEnd(s, t); // check in which street are the start and the end 
-
 
 		if(tronconStartAndEndEquals.size() > 0) {
 			listEnd = takeAllLocWithStartAndEndOneTheSameStreet(s, t);
@@ -211,7 +262,7 @@ public class FadeTwoMapsApp extends PApplet {
 
 			double sol1 = astar.getPathWeight(start, end);
 
-			if(sol1 < 1500 && sol1 > 0) {
+			if(sol1 < 10000 && sol1 > 0) {
 				GraphPath<String, Edge> resEdge = astar.getPath(start, end);
 
 				List<Location> locas = new ArrayList<Location>();
@@ -234,14 +285,6 @@ public class FadeTwoMapsApp extends PApplet {
 		return listEnd;
 	}
 
-	private boolean areCloth(Location location, Location location2) {
-
-		if(Math.abs(location.getLat() - location2.getLat()) <= 0.0001 && Math.abs(location.getLon() - location2.getLon()) <= 0.0001) {
-			return true;
-		}
-		return false;
-	}
-
 	public void draw() {
 		background(0);
 
@@ -250,22 +293,25 @@ public class FadeTwoMapsApp extends PApplet {
 
 		// Description at the Top
 		fill(255);
-		String word = " De : " + Other.start + " a : " + Other.end;
+		String word = " De : " + Other.start + " a : " + Other.end + " Temps : " + Other.tempsFinal + "m";
 		text(word , 10, 20);
-		text(" CLiquez sur ECHAP pour quitter", 300, 20);
+		text(" Quitter : ECHAP", (float) (0.8*this.getSize().width), 20);
 
 	}
 
+	// echap to leave the page
 	public void keyPressed() {
 		if(key == 27) {
 			this.frame.dispose();
 		}
 	}
 
+	// main function
 	public static void OneMain() {
 		PApplet.main(new String[] { "de.fhpotsdam.unfolding.examples.animation.FadeTwoMapsApp" });
 	}
 
+	// load graph by reducing vector and edge with start and end location
 	private void loadGraphe(Location s, Location t) {
 
 		Iterator<String> it = loadedGraphe.vertexSet().iterator();
@@ -295,22 +341,22 @@ public class FadeTwoMapsApp extends PApplet {
 
 	}
 
+	// search in which section start and end position are
 	private void loadEdgeStartAndEnd(Location s, Location t) {
 
 		boolean toutFiniS = false;
 		boolean toutFiniT = false;
 
-
 		for(Feature feature : table){
 			ShapeFeature lineFeature = (ShapeFeature) feature;
 
-			// si s a moins de 700 metres des deux extremites du troncons
+			// if start is less than 700 meters from both ends of the section 
 			if(toutFiniS == false) {
 				if(Math.abs(s.getLat()-lineFeature.getLocations().get(0).getLat()) <= 0.008 && Math.abs(s.getLon()-lineFeature.getLocations().get(0).getLon()) <= 0.008 && Math.abs(s.getLat()-lineFeature.getLocations().get(lineFeature.getLocations().size()-1).getLat()) <= 0.008 && Math.abs(s.getLon()-lineFeature.getLocations().get(lineFeature.getLocations().size()-1).getLon()) <= 0.008) { 
-					for(int i = 0; i < lineFeature.getLocations().size()-1; i++) { // on parcourt la liste de locations
+					for(int i = 0; i < lineFeature.getLocations().size()-1; i++) { // browse the locations list
 						Location loc = lineFeature.getLocations().get(i);
 						Location loc1 = lineFeature.getLocations().get(i+1);
-						if(isInside(s, loc, loc1)) { // si une location pas loin de start
+						if(isInside(s, loc, loc1)) { // if start is inside a section
 							indexOfStart = i;
 
 							Location dep = lineFeature.getLocations().get(0);
@@ -347,13 +393,13 @@ public class FadeTwoMapsApp extends PApplet {
 				}
 			}
 
-			// si t a moins de 700m des extremites du troncon
+			// if end is less than 700 meters from both ends of the section 
 			if(toutFiniT == false) {
 				if(Math.abs(t.getLat()-lineFeature.getLocations().get(0).getLat()) <= 0.008 && Math.abs(t.getLon()-lineFeature.getLocations().get(0).getLon()) <= 0.008 && Math.abs(t.getLat()-lineFeature.getLocations().get(lineFeature.getLocations().size()-1).getLat()) <= 0.008 && Math.abs(t.getLon()-lineFeature.getLocations().get(lineFeature.getLocations().size()-1).getLon()) <= 0.008) {
 					for(int i = 0; i < lineFeature.getLocations().size()-1; i++) {
 						Location loc = lineFeature.getLocations().get(i);
 						Location loc1 = lineFeature.getLocations().get(i+1);
-						if(isInside(t, loc, loc1)) { // si une location pas loin de start
+						if(isInside(t, loc, loc1)) {
 							indexOfEnd = i;
 
 							Location dep = lineFeature.getLocations().get(0);
@@ -398,6 +444,7 @@ public class FadeTwoMapsApp extends PApplet {
 		}
 	}
 
+	// search the real path with several locations
 	private List<Location> takeAllLocationsTroncon(List<Location> locas) {
 		List<List<Location>> l = new ArrayList<List<Location>>();
 		List<Location> l1 = new ArrayList<Location>();
@@ -490,46 +537,49 @@ public class FadeTwoMapsApp extends PApplet {
 	}
 
 
-	private boolean isNotFar(String p, Location loc, double ecartX, double ecartY) { // teste si p n'est pas loin du milieu de s et t
+	// if a location is inside an interval
+	private boolean isNotFar(String p, Location loc, double ecartX, double ecartY) {
 		int indexP = p.indexOf("&");
 
 		double p1 = Double.parseDouble(p.substring(0, indexP));
-		double p2 = Double.parseDouble(p.substring(indexP+1));
+		double p2 = Double.parseDouble(p.substring(indexP+1)); 
 
-		if(Math.abs(p1 - loc.getLat()) <= (double)(ecartX/2 + 0.003) && Math.abs(p2 - loc.getLon()) <= (double) (ecartY/2 + 0.003) ) { // 300 meters around
+		if(Math.abs(p1 - loc.getLat()) <= (double)(ecartX/2) + 0.01 && Math.abs(p2 - loc.getLon()) <= (double)(ecartY/2) + 0.01) {
 			return true;
 		}
-
 		return false;
 	}
 
-	private boolean isInside(Location loc, Location dep, Location fin) { // + or - 6 meters
+	// if a location is inside a section
+	private boolean isInside(Location loc, Location dep, Location fin) { // + or - 1 meters
 		double x = loc.getLat();
 		double y = loc.getLon();
 
-		if(dep.getLat() <= fin.getLat() && dep.getLon() <= dep.getLon()) { // depart en bas a gauche
-			if(x >= dep.getLat()-0.00006 && x <= fin.getLat()+0.00006 && y >= dep.getLon()-0.00006 && y <= fin.getLon()+0.00006) {
+		if(dep.getLat() <= fin.getLat() && dep.getLon() <= fin.getLon()) { // start at the bottom left of end 
+			if(x >= dep.getLat()-0.000015 && x <= fin.getLat()+0.000015 && y >= dep.getLon()-0.000015 && y <= fin.getLon()+0.000015) {
 				return true;
 			}
 		}
-		else if (dep.getLat() <= fin.getLat() && dep.getLon() > dep.getLon()) { // depart en haut a gauche
-			if(x >= dep.getLat()-0.00006 && x <= fin.getLat()+0.00006 && y <= dep.getLon()+0.00006 && y >= fin.getLon()-0.00006) {
+		else if (dep.getLat() <= fin.getLat() && dep.getLon() > fin.getLon()) { // start at the top left of end
+			if(x >= dep.getLat()-0.000015 && x <= fin.getLat()+0.000015 && y <= dep.getLon()+0.000015 && y >= fin.getLon()-0.000015) {
 				return true;
 			}
 		}
-		else if (dep.getLat() > fin.getLat() && dep.getLon() <= dep.getLon()) { // depart en bas a droite
-			if(x <= dep.getLat()+0.00006 && x >= fin.getLat()-0.00006 && y >= dep.getLon()-0.00006 && y <= fin.getLon()+0.00006) {
+		else if (dep.getLat() > fin.getLat() && dep.getLon() <= fin.getLon()) { // start at the bottom right of end 
+			if(x <= dep.getLat()+0.000015 && x >= fin.getLat()-0.000015 && y >= dep.getLon()-0.000015 && y <= fin.getLon()+0.000015) {
 				return true;
 			}
 		}
-		else if (dep.getLat() > fin.getLat() && dep.getLon() > dep.getLon()) { // depart en haut a droite
-			if(x <= dep.getLat()+0.00006 && x >= fin.getLat()-0.00006 && y <= dep.getLon()+0.00006 && y >= fin.getLon()-0.00006) {
+		else if (dep.getLat() > fin.getLat() && dep.getLon() > fin.getLon()) { // start at the top right of end 
+			if(x <= dep.getLat()+0.000015 && x >= fin.getLat()-0.000015 && y <= dep.getLon()+0.000015 && y >= fin.getLon()-0.000015) {
 				return true;
 			}
 		}
 		return false;
 	}
 
+
+	// find the real size of a section
 	private double sizeTroncon(List<Location> locations) { // size of the troncon in meters
 		double res = 0;
 		for(int i = 0; i < locations.size()-1; i++) {
@@ -544,9 +594,10 @@ public class FadeTwoMapsApp extends PApplet {
 			res += Math.sqrt(hori*hori + verti* verti);
 
 		}
-		return 7.89*res/0.0001; // 7.89 meter <=> 0.0001 coordinates (https://fr.wikipedia.org/wiki/Coordonn%C3%A9es_g%C3%A9ographiques)
+		return 7.89*res/0.0001; // 7.89 meters <=> 0.0001 coordinates in Bordeaux (https://fr.wikipedia.org/wiki/Coordonn%C3%A9es_g%C3%A9ographiques)
 	}
 
+	// find path if start and end are in the same section
 	private List<Location> takeAllLocWithStartAndEndOneTheSameStreet(Location s, Location t) {
 		List<Location> l = new ArrayList<Location>();
 
@@ -570,6 +621,7 @@ public class FadeTwoMapsApp extends PApplet {
 	}
 
 
+	// save walking graph
 	public void saveGraphe() {
 		g = new SimpleWeightedGraph<String, Edge>(Edge.class);
 		Set<String> set = new HashSet<String>();
@@ -596,7 +648,7 @@ public class FadeTwoMapsApp extends PApplet {
 			int cpt = 0;
 			while(!edge.getLocS().equals(";")) {
 
-				if(!g.edgeSet().contains(edge) && cpt != 37073 && cpt != 24188) { // loops with 37073 object
+				if(!g.edgeSet().contains(edge) && cpt != 37073 && cpt != 24188) { // loops with 37073 and 24188 object (Bordeaux)
 					g.addEdge(edge.getLocS(), edge.getLocT(), edge);
 					g.setEdgeWeight(edge.getLocS().toString(), edge.getLocT().toString(), edge.getWeight());
 				}
@@ -620,6 +672,7 @@ public class FadeTwoMapsApp extends PApplet {
 		}
 	}
 
+	// save vector and edge for walking graph
 	public void saveSommetsArcs() { 
 		try { 
 			ObjectOutputStream load = new ObjectOutputStream(new FileOutputStream("src/data1/vectors.dat"));
@@ -671,7 +724,9 @@ public class FadeTwoMapsApp extends PApplet {
 		}
 	}
 
-	private void saveEdgeWalk() { // a partir des coordonnees des stations on forme les aretes entre deux stations de lignes differentes et temps de marche
+	// with coordinates station, we form walking edges between two stations
+	@SuppressWarnings("unused")
+	private void saveEdgeWalk() {
 
 		List<Feature> tab = GeoJSONReader.loadData(this, "src/data1/sv_arret_p.geojson");
 
@@ -776,7 +831,7 @@ public class FadeTwoMapsApp extends PApplet {
 				}
 			}
 		}
-
+		
 		try {
 			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/data1/arcsEntreStationsAPied.dat"));
 			save.writeObject(listEdge);
@@ -785,7 +840,289 @@ public class FadeTwoMapsApp extends PApplet {
 		catch(Exception e) {
 			System.out.println("error : " + e.getMessage());
 		}
+	}
 
+	// position of each stations
+	@SuppressWarnings("unused")
+	private void infoStations() {
+		table = GeoJSONReader.loadData(this, "src/data1/sv_arret_p.geojson");
+
+		try {
+			ObjectOutputStream load = new ObjectOutputStream(new FileOutputStream("src/data1/infoStations.dat"));
+			List<InfoStation> l = new ArrayList<InfoStation>();
+
+			for(int i = 0; i < table.size(); i++) {
+				Feature f = table.get(i);
+				PointFeature p = (PointFeature) f;
+
+				InfoStation k = new InfoStation(p.getStringProperty("libelle"), p.getLocation());
+				l.add(k);
+			}
+			load.writeObject(l);
+			load.close();
+
+		}
+		catch(Exception e) {
+
+		}
+	}
+
+	// position of each stations with number of the line
+	@SuppressWarnings({ "unchecked", "unused" })
+	private void exportNumeroStations() {
+		List<Feature> transitLines = new ArrayList<Feature>();
+		List<InfoStation> listInfo = new ArrayList<InfoStation>();
+		Set<InfoStation> listEnd = new HashSet<InfoStation>();
+
+
+		try {
+			transitLines = GeoJSONReader.loadData(this, "src/data1/tb_chem_l.geojson");
+			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/data1/infoStations.dat"));
+			listInfo = (List<InfoStation>) load.readObject();
+			load.close();
+		}
+		catch(Exception e) {
+			System.out.println("Error : " + e.getMessage());
+		}
+
+
+		for(int i = 0; i < listInfo.size(); i++) {
+			String stat = listInfo.get(i).getName();
+			Location loc = listInfo.get(i).getLoc();
+			System.out.println(i);
+
+			for (Feature feature : transitLines) {
+
+				ShapeFeature lineFeature = (ShapeFeature) feature; 
+				String numeroStation = lineFeature.getStringProperty("nomcomli");
+
+				for(int k = 0; k < lineFeature.getLocations().size()-1; k++) {
+
+					if(isInside(loc, lineFeature.getLocations().get(k), lineFeature.getLocations().get(k+1))) {
+						InfoStation e = new InfoStation(stat, loc, numeroStation);
+
+						listEnd.add(e);
+						break;
+
+					}
+				}
+			}
+		}
+
+		try {
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/data1/infoStationsAvecNumeroTransport.dat"));
+			save.writeObject(listEnd);
+			save.close();
+		}
+		catch(Exception e) {
+			System.out.println("Error : " + e.getMessage());
+		}
+	}
+
+
+	// file with path between two stations inside a transport (doesn't work)
+	@SuppressWarnings("unchecked")
+	public void exportListCheminStationsEnTransport() {
+
+		List<Feature> transitLines = new ArrayList<Feature>();
+		Set<InfoStation> setInfo = new HashSet<InfoStation>();
+
+		List<List<Edge>> listEnd = new ArrayList<List<Edge>>();
+
+		List<InfoStation> listInfo = new ArrayList<InfoStation>();
+		List<InfoStation> l = new ArrayList<InfoStation>();
+
+
+		try {
+			transitLines = GeoJSONReader.loadData(this, "src/data1/tb_chem_l.geojson");
+			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/data1/infoStationsAvecNumeroTransport.dat"));
+			setInfo = (Set<InfoStation>) load.readObject();
+
+			ObjectInputStream load2 = new ObjectInputStream(new FileInputStream("src/data1/infoStations.dat"));
+			l = (List<InfoStation>) load2.readObject();
+
+			load.close();
+			load2.close();
+		}
+		catch(Exception e) {
+			System.out.println("Error : " + e.getMessage());
+		}
+
+		listInfo.addAll(setInfo);
+
+		List<String> listNom = new ArrayList<String>();
+
+		for(int i = 0; i < l.size(); i++) {
+			listEnd.add(new ArrayList<Edge>());
+			listNom.add(l.get(i).getName());
+		}
+
+
+		for(int i = 0; i < listInfo.size()-1; i++) {
+			String stat = listInfo.get(i).getName();
+			Location loc = listInfo.get(i).getLoc();
+			String num = listInfo.get(i).getNumero();
+
+			for(int j = i+1; j < listInfo.size(); j++) {
+				String stat2 = listInfo.get(j).getName();
+				Location loc2 = listInfo.get(j).getLoc();
+				String num2 = listInfo.get(j).getNumero();
+
+				if(num.equals(num2)) {
+
+					for (Feature feature : transitLines) {
+
+						List<Location> listChemin = new ArrayList<Location>();
+						ShapeFeature lineFeature = (ShapeFeature) feature; 
+						String numeroStation = lineFeature.getStringProperty("nomcomli");
+
+						if(numeroStation.equals(num)) {
+
+							boolean areCloth = false;
+							boolean areClothNext = false;
+
+							int index1 = -1;
+							int index2 = -1;
+
+							for(int z = 0; z <= lineFeature.getLocations().size()-1; z++) {
+
+								areCloth = isInside(loc, lineFeature.getLocations().get(z), lineFeature.getLocations().get(z+1));
+								areClothNext = isInside(loc2, lineFeature.getLocations().get(z), lineFeature.getLocations().get(z+1));
+
+								if(index1 != 0 && index2 != 0) {
+									break;
+								}
+
+								if(areCloth) {
+									index1 = z;
+								}
+								if(areClothNext) {
+									index2 = z;
+								}
+
+							}
+
+
+							if(index1 != -1 && index2 != -1) { // if a path exists
+
+								if(index1 < index2) {
+									listChemin.add(loc);
+									for(int r = index1+1; r < index2; r++) {
+										listChemin.add(lineFeature.getLocations().get(r));
+									}
+									listChemin.add(loc2);
+								}
+								else {
+									listChemin.add(loc2);
+									for(int r = index2+1; r < index1; r++) {
+										listChemin.add(lineFeature.getLocations().get(r));
+									}
+									listChemin.add(loc);
+									Collections.reverse(listChemin);
+								}
+
+								Edge e = new Edge(stat, stat2, 0, listChemin);
+								Collections.reverse(listChemin);
+								Edge e1 = new Edge(stat2, stat, 0, listChemin);
+
+								if(!listEnd.get(listNom.indexOf(stat)).contains(e)) {
+									listEnd.get(listNom.indexOf(stat)).add(e);
+								}
+								if(!listEnd.get(listNom.indexOf(stat2)).contains(e1)) {
+									listEnd.get(listNom.indexOf(stat2)).add(e1);
+								}
+								break;
+							}
+						}	
+					}
+				}
+			}
+		}
+
+		System.out.println(listEnd);
+
+		List<Set<Edge>> listSet = new ArrayList<Set<Edge>>();
+
+		for(int i = 0; i < 3; i++) {	
+			Set<Edge> e = new HashSet<Edge>();
+			e.addAll(listEnd.get(i));
+			listSet.add(e);
+			System.out.println(listSet.get(i));
+		}
+		System.exit(0);
+
+		for(int i = 0; i < listEnd.size(); i++) {	
+			System.out.println(i);
+			try {
+				// problem with name with a /
+				String m = listNom.get(i);
+				int index = m.indexOf("/");
+				if(index != -1) {
+					m = m.substring(0, index);
+				}
+
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/data1/chemins/cheminEntreStationAvec" + m + ".dat"));
+				save.writeObject(listEnd.get(i));
+				save.close();
+			}
+			catch(Exception e) {
+				System.out.println("Error : " + e.getMessage());
+			}
+		}
+	}
+
+	// street named -> coordinates (cause limit of gc memory : -Xmx5g)
+	private void saveAllPositionStreet() {
+
+		try {
+			List<Feature> tab = GeoJSONReader.loadData(this, "src/data1/fv_adresse_p.geojson");
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/data1/allPositions.dat"));
+			List<PositionInCity> list = new ArrayList<PositionInCity>();
+			for(int i = 0; i < tab.size(); i++) {
+				System.out.println(i);
+				Feature feature = tab.get(i);
+				PointFeature p = (PointFeature) feature;
+				String str = p.getProperty("numero") + " " + p.getProperty("nom_voie") + p.getProperty("commune");
+				Location loc = p.getLocation();
+				PositionInCity pos = new PositionInCity(str, loc);
+				list.add(pos);
+			}
+			save.writeObject(list);
+			save.close();
+		}
+		catch(Exception e) {
+			System.out.println("Error : " + e.getMessage());
+		}
+	}
+
+	// all lines
+	private void infoLignes() {
+		List<String> line = new ArrayList<String>();
+		try {
+			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/data1/infoStationsAvecNumeroTransport.dat"));
+			@SuppressWarnings("unchecked")
+			Set<InfoStation> l = (Set<InfoStation>) load.readObject();	
+			Iterator<InfoStation> it = l.iterator();
+			while(it.hasNext()) {
+				InfoStation e = it.next();
+				if(!line.contains(e.getNumero())) {
+					line.add(e.getNumero());
+				}
+			}
+			load.close();
+		}
+		catch(Exception e) {
+			System.out.println("Error : " + e.getMessage());
+		}
+
+		try {
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/data1/infoLignes.dat"));
+			save.writeObject(line);
+			save.close();
+		}
+		catch(Exception e) {
+			System.out.println("Error : " + e.getMessage());
+		}
 	}
 
 }
