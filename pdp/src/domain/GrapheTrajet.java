@@ -10,11 +10,13 @@ import org.jgrapht.alg.shortestpath.AStarShortestPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.*;
 
+import java.io.FileOutputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 
@@ -24,13 +26,13 @@ public class GrapheTrajet implements java.io.Serializable{
 	private int jour;
 	
 	private static double PENALITE = 2;
-	private static double TEMPSMAXATTENTE = 1200; //on attendra jamais plus de 1200 secondes soit 20 minutes à un arrêt.
+	private static double TEMPSMAXATTENTE = 1200; //on attendra jamais plus de 1200 secondes soit 20 minutes Ã  un arrÃªt.
 	
 	public GrapheTrajet(List<Ligne> LignesTrajet, int jour) throws IOException {
 		this.jour = jour;
 		g = new SimpleDirectedWeightedGraph<String, ArcTrajet>(ArcTrajet.class);
-		ajouterSommets(LignesTrajet);
-		ajouterAretesDeTransport(LignesTrajet);
+		ajouterSommets(LignesTrajet,2);
+		ajouterAretesDeTransport(LignesTrajet,2);
 		ajouterAretesMarche();
 		ajouterAretesAttenteTrajets();
 		g.addVertex("depart");
@@ -43,16 +45,247 @@ public class GrapheTrajet implements java.io.Serializable{
 		List<Ligne> tram = Donnees.ChargerDonnees("src\\keolis_tram", jour);
 		List<Ligne> bus = Donnees.ChargerDonnees("src\\keolis_bus", jour);
 		
-		ajouterSommets(tram);
-		ajouterSommets(bus);
-		ajouterAretesDeTransport(tram);
-		ajouterAretesDeTransport(bus);
+		ajouterSommets(tram,0);
+		ajouterSommets(bus,1);
+		ajouterAretesDeTransport(tram,0);
+		ajouterAretesDeTransport(bus,1);
 		ajouterAretesMarche();
 		ajouterAretesAttenteTrajets();
 		g.addVertex("depart");
 		g.addVertex("arrivee");
-		
 	} 
+	
+	private void ajouterAttente() {
+		List<MemeEndroit> l = new ArrayList<MemeEndroit>();
+		List<String> listS = new ArrayList<String>();
+		List<Integer> listInt = new ArrayList<Integer>();
+		List<MemeEndroit> best = new ArrayList<MemeEndroit>();
+
+		try {
+			ObjectInputStream save = new ObjectInputStream(new FileInputStream("src/someData/MemeEndroit" + jour + ".dat"));
+			l = (List<MemeEndroit>) save.readObject();
+			save.close();
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+
+		System.out.println(l.size());
+
+		Set<String> set = new HashSet<String>();
+
+		for(int i = 0; i < l.size(); i++) {
+			System.out.println(i);
+			String m = l.get(i).getLocS() + l.get(i).getNumeroS() + l.get(i).getNumeroT();
+			set.add(m);
+			listInt.add(10000);
+			best.add(new MemeEndroit());
+		}
+
+		listS.addAll(set);
+		System.out.println(best.size());
+
+		for(int i = 0; i < l.size(); i++) {
+			System.out.println(i);
+
+			int index = listS.indexOf(l.get(i).getLocS()+l.get(i).getNumeroS()+l.get(i).getNumeroT());
+			if(l.get(i).getEcart() < listInt.get(index)) {
+				listInt.set(index, l.get(i).getEcart());
+				best.set(index, l.get(i));
+			}
+		}
+
+		for(int i = 0; i < best.size(); i++) {
+			MemeEndroit m = l.get(i);
+			ArcTrajet a = addWeightedEdge(m.getLocS(), m.getLocT(), m.getEcart(), Ligne.ATTENTE, "attente");
+		}
+
+		List<ArcTrajet> lEnd = new ArrayList<ArcTrajet>();
+		lEnd.addAll(g.edgeSet());
+
+		try {
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesAttenteMemeEndroitBus" + jour + ".dat"));
+			save.writeObject(lEnd);
+			save.close();
+		}
+		catch(Exception e) {
+
+		}
+
+	}
+
+	private void creerArretesAttenteMemeStation(int p) {
+		List<Ligne> tran = new ArrayList<Ligne>();
+		try {
+			if(p ==0) {
+				ObjectInputStream save = new ObjectInputStream(new FileInputStream("src/someData/tram" + jour + ".dat"));
+				tran = (List<Ligne>) save.readObject();
+				save.close();
+			}
+			else if(p ==1) {
+				ObjectInputStream save2 = new ObjectInputStream(new FileInputStream("src/someData/bus" + jour + ".dat"));
+				tran = (List<Ligne>) save2.readObject();
+				save2.close();
+			}
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+
+		System.out.println(tran.size());
+		List<MemeEndroit> lEnd = new ArrayList<MemeEndroit>();
+
+		for(int i = 0; i < tran.size()-1; i++) { // parcourt des lignes
+			List<Trajet> l1 = tran.get(i).getTrajets();
+			System.out.println(i);
+
+			for(int j = i+1; j < tran.size(); j++) { // parcourt des autres lignes
+				List<Trajet> l2 = tran.get(j).getTrajets();
+
+				for(int k = 0; k < l1.size(); k++) {
+					Map<Station, Horaire> t1 = l1.get(k).getArrets();
+					for(int l = 0; l < l2.size(); l++) {
+						Map<Station, Horaire> t2 = l2.get(l).getArrets();
+
+						Iterator<Station> it1 = t1.keySet().iterator();
+						while(it1.hasNext()) {
+							Station s1 = it1.next();
+							Horaire h1 = t1.get(s1);
+							Iterator<Station> it2 = t2.keySet().iterator();
+							while(it2.hasNext()) {
+								Station s2 = it2.next();
+								Horaire h2 = t2.get(s2);
+
+								if(s1.getNom().equals(s2.getNom()) && s1.getPosition().equals(s2.getPosition())) {
+									MemeEndroit p1 = new MemeEndroit();
+									if(h2.estAvant(h1)) {
+										p1 = new MemeEndroit(nommerSommet(s2, h2), nommerSommet(s1,h1), differenceHoraire(h2, h1), tran.get(j).getNom(), tran.get(i).getNom());
+									}
+									else {
+										p1 = new MemeEndroit(nommerSommet(s1, h1), nommerSommet(s2,h2), differenceHoraire(h1, h2), tran.get(i).getNom(), tran.get(j).getNom());
+									}
+									if(!lEnd.contains(p1)) {
+										lEnd.add(p1);
+									}
+								}
+							}
+						}
+					}
+				}
+
+			}
+		}
+		System.out.println("Creation des arcs de trajet terminee");
+		System.out.println(lEnd.size());
+
+		List<ArcTrajet> l1 = new ArrayList<ArcTrajet>();
+		//l1.addAll(g.edgeSet());
+
+		try {
+			if(p == 0) {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesAttenteOKTram" + jour + ".dat"));
+				save.writeObject(l1);
+				save.close();
+			}
+			else if(p==1) {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/MemeEndroit" + jour + ".dat"));
+				save.writeObject(lEnd);
+				save.close();
+			}
+			else {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesAttenteOKOther" + jour + ".dat"));
+				save.writeObject(l1);
+				save.close();
+			}
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+
+		System.out.println("Creation du fichier de trajet terminee");
+
+	}
+	
+	private void creerAretesAttenteEnFonctionDeMarche() {
+		List<ArcTrajet> l = new ArrayList<ArcTrajet>();
+		List<String> set = new ArrayList<String>();
+
+		try {
+
+			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/data1/ListArcTrajetPied" + jour + ".ser"));
+			ObjectInputStream load1 = new ObjectInputStream(new FileInputStream("src/someData/vectorTram" + jour + ".dat"));
+			ObjectInputStream load2 = new ObjectInputStream(new FileInputStream("src/someData/vectorBus" + jour + ".dat"));
+
+			l = (List<ArcTrajet>) load.readObject();
+			System.out.println(l.size());
+			
+			try {
+				ObjectOutputStream load11 = new ObjectOutputStream(new FileOutputStream("src/someData/aretesMarche" + jour + ".dat"));
+				load11.writeObject(l);
+				load11.close();
+			}
+			catch(Exception e) {
+				System.out.println(e.getMessage());
+			}
+			System.exit(0);
+			set = (List<String>) load1.readObject();
+			System.out.println(set.size());
+			set.addAll((List<String>) load2.readObject());
+			System.out.println(set.size());
+
+			load.close();
+			load1.close();
+			load2.close();
+		}
+		catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+
+		int ecartCourant = 0;
+		for(int i = 0; i < l.size(); i++) {
+			System.out.println(i);
+			int ecart = 100000;
+			String best = ""; 
+
+			ArcTrajet a = l.get(i);
+			String str1 = denommer(a.getTargetT());
+			Horaire h1 = trouverHoraire(a.getTargetT());
+			for(int j = 0; j < set.size(); j++) {
+				String str2 = denommer(set.get(i));
+				Horaire h2 = trouverHoraire(str1);
+				if(str1.contentEquals(str2) && h1.estAvant(h2)) {
+					ecartCourant = differenceHoraire(h1, h2);
+					if(ecartCourant < ecart) {
+						ecart = ecartCourant;
+						best = set.get(i);
+					}
+				}
+			}
+			ArcTrajet tmp = addWeightedEdge(str1, best, ecart, Ligne.ATTENTE, "attente");
+		}
+		System.out.println("Creation des arcs de trajet terminee");
+
+		List<ArcTrajet> l1 = new ArrayList<ArcTrajet>();
+		l1.addAll(g.edgeSet());
+
+		try {
+
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesAttenteApresMarche" + jour + ".dat"));
+			save.writeObject(l1);
+			save.close();
+
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+
+		System.out.println("Creation du fichier de trajet terminee");
+	}
+
+	
+	private int differenceHoraire(Horaire h1, Horaire h2) {
+		return Math.abs(h2.getHeure()-h1.getHeure())*3600 + Math.abs(h2.getMinute()-h1.getMinute())*60 + Math.abs(h2.getSeconde()-h1.getSeconde());
+	}
 	
 	public GrapheTrajet() {
 		g = new SimpleDirectedWeightedGraph<String, ArcTrajet>(ArcTrajet.class);
@@ -64,43 +297,68 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 	/*
-	 * Création d'un nouveau graphe à partir d'un ensemble d'entités du package "Transport"
-	 * (Cette partie est utile avant la sérialisation du graphe)
-	 * (Une fois que celui-ci est créé, ces fonctions ne sont plus utiles pour la résolution)
+	 * CrÃ©ation d'un nouveau graphe Ã  partir d'un ensemble d'entitÃ©s du package "Transport"
+	 * (Cette partie est utile avant la sÃ©rialisation du graphe)
+	 * (Une fois que celui-ci est crÃ©Ã©, ces fonctions ne sont plus utiles pour la rÃ©solution)
 	 */
 	
-	private void ajouterSommets(List<Ligne> LignesTrajet) {
-		
-		if(jour >7 || jour <1) { // si jour n'est pas entre 1 et 7 ==> Férier ==> meme horaire que Dimanche (== 7)
+	private void ajouterSommets(List<Ligne> LignesTrajet, int p) {
+
+		if(jour >7 || jour <1) { // si jour n'est pas entre 1 et 7 ==> FÃ©rier ==> meme horaire que Dimanche (== 7)
 			jour = 7 ;
 		}
 		String sommet;
 		Horaire h;
-		
+
+		List<String> lEnd = new ArrayList<String>();
+
 		for(Ligne l: LignesTrajet) {//pour chaque ligne
-			
+
 			for(Trajet t: l.getTrajets()) {//pour chaque trajet 
-				
+
 				for(Station s: t.getArrets().keySet()) {//et pour chaque station dans la map(staion/horaire) de t
 					h= t.getArrets().get(s); //l'horaire de la station s sur le trajet t
-					
-					if( (int) h.getJour() == (int) jour ) { // On prend que les horaires du jour indiqué   
+
+					if( (int) h.getJour() == (int) jour ) { // On prend que les horaires du jour indiquÃ©   
 						sommet = nommerSommet(s, h);
-						
+
 						//sommet=s.toString()+h.toString();//on cree un sommet au nom unique selon son lieu et son horaire
 						if(!this.g.containsVertex(sommet)) {
 							this.g.addVertex(sommet);
-							System.out.println(sommet);
+							lEnd.add(sommet);
+							//System.out.println(sommet);
 						}
 					}
 				}
 			}
 		}
-		System.out.println("Creation des sommets terminee");
+
+		try {
+			if(p == 0) {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/vectorTram" + jour + ".dat"));
+				save.writeObject(lEnd);
+				save.close();
+			}
+			else if(p == 1) {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/vectorBus" + jour + ".dat"));
+				save.writeObject(lEnd);
+				save.close();
+			}
+			else {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/vectorOther" + jour + ".dat"));
+				save.writeObject(lEnd);
+				save.close();
+			}
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+		System.out.println("Creation du fichier terminee");
 	}
 	
-	private void ajouterAretesDeTransport(List<Ligne> LignesTrajet){
-		if(jour >7 || jour <1) { // si jour n'est pas entre 1 et 7 ==> Férier ==> meme horaire que Dimanche (== 7)
+	private void ajouterAretesDeTransport(List<Ligne> LignesTrajet, int p){
+
+		if(jour >7 || jour <1) { // si jour n'est pas entre 1 et 7 ==> FÃ©rier ==> meme horaire que Dimanche (== 7)
 			jour = 7 ;
 		}
 		String sommetA, sommetB;
@@ -109,28 +367,69 @@ public class GrapheTrajet implements java.io.Serializable{
 		List<Trajet> tr = new ArrayList<Trajet>();
 		Map<Station,Horaire> mp = new HashMap<Station,Horaire>();
 
-		for(Ligne l: LignesTrajet) {//On regarde les lignes successivement
+		for(int k = 0; k < LignesTrajet.size(); k++) {//On regarde les lignes successivement
+
+			Ligne l = LignesTrajet.get(k);
+			System.out.println(k);
 			tr = l.getTrajets();
 			for(Trajet t: tr) {//Pour chaque trajets de ces lignes
 				tmp = t.getArrets();
-				for(Station stationA: tmp.keySet()){//On regarde chaque station par lequel le trajet passe, qui pourraient être une source d'un arc
+
+				List<Station> list = new ArrayList<Station>();
+				list.addAll(tmp.keySet());
+				for(int i = 0; i < list.size()-1; i++){//On regarde chaque station par lequel le trajet passe, qui pourraient Ãªtre une source d'un arc
+					Station stationA = list.get(i);
 					hA = tmp.get(stationA);
-					if(hA.getJour() == jour) { // On prend les horaires du jour indiqué 
-						mp = t.getArretsAfter(hA);
-						for(Station stationB: mp.keySet()) {//La station B est la cible de l'arc
+
+					if(hA.getJour() == jour) { // On prend les horaires du jour indiquÃ© 
+
+						for(int j = i+1; j < list.size()-1; j++) {
+							Station stationB = list.get(j);
+
 							hB = tmp.get(stationB);
-							//le sens est bien le bon, car getArretAfter(hA) revoie que les arrets qui viennent apres stationA
-							//sommetA = stationA.toString()+horaireA.toString();
 							sommetA = nommerSommet(stationA, hA);
-							//sommetB = stationB.toString()+horaireB.toString();
 							sommetB = nommerSommet(stationB, hB);
-							addWeightedEdge(sommetA, sommetB, hA.tempsEntre(hB), l.getVehicule(), l.getNom());//ajout des sommets		
+
+							if(!g.containsVertex(sommetA)) {
+								g.addVertex(sommetA);
+							}
+							if(!g.containsVertex(sommetB)) {
+								g.addVertex(sommetB);
+							}
+							addWeightedEdge(sommetA, sommetB, hA.tempsEntre(hB), l.getVehicule(), l.getNom());//ajout des sommets	
 						}
 					}
+
 				}
 			}
 		}
 		System.out.println("Creation des arcs de trajet terminee");
+
+		List<ArcTrajet> l = new ArrayList<ArcTrajet>();
+		l.addAll(g.edgeSet());
+
+		try {
+			if(p == 0) {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesTramEntreTous" + jour + ".dat"));
+				save.writeObject(l);
+				save.close();
+			}
+			else if(p==1) {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesBusEntreTous" + jour + ".dat"));
+				save.writeObject(l);
+				save.close();
+			}
+			else {
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesOtherEntreTous" + jour + ".dat"));
+				save.writeObject(l);
+				save.close();
+			}
+		}
+		catch(Exception e) {
+			System.out.println("error : " + e.getMessage());
+		}
+
+		System.out.println("Creation du fichier de trajet terminee");
 	}
 		
 	private void ajouterAretesAttenteTrajets() {
@@ -237,7 +536,7 @@ public class GrapheTrajet implements java.io.Serializable{
 			bus = Donnees.ChargerDonnees("src\\keolis_bus", j);
 			
 			//ajouterSommets(tram);
-			ajouterSommets(bus);
+			ajouterSommets(bus,1);
 			
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
@@ -348,12 +647,18 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 	/*
-	 * Fonction d'ajout d'un arc valué.
-	 * Utile à la fois à la création du graphe et lors de la résolution du plus court chemin
+	 * Fonction d'ajout d'un arc valuÃ©.
+	 * Utile Ã  la fois Ã  la crÃ©ation du graphe et lors de la rÃ©solution du plus court chemin
 	 */
 	
 	private ArcTrajet addWeightedEdge(String v1, String v2, double weight, String vehicule, String nom) {
 		ArcTrajet arc = new ArcTrajet(vehicule, denommer(v1), denommer(v2), nom);
+		if(!g.containsVertex(v1)) {
+			g.addVertex(v1);
+		}
+		if(!g.containsVertex(v2)) {
+			g.addVertex(v2);
+		}
 		if(!v1.contains(v2)) {
 			g.addEdge(v1, v2, arc);
 			g.setEdgeWeight(v1, v2, weight);
@@ -416,7 +721,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 	/*
-	 * Algos de résolution (A* et Dijkstra
+	 * Algos de rÃ©solution (A* et Dijkstra
 	 */
 	
 	
@@ -468,7 +773,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 	/*
-	 * Fonctionnalitées suppélementaires : Arriver A
+	 * FonctionnalitÃ©es suppÃ©lementaires : Arriver A
 	 */
 	
 	private void ajouterDepartArriverA(String from, GrapheTrajet gr) {
@@ -550,7 +855,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 
 	/*
-	 * Fonctionnalitées suppélementaires : éviter tel trajet
+	 * FonctionnalitÃ©es suppÃ©lementaires : Ã©viter tel trajet
 	 */
 
 	private GrapheTrajet filtrerGraphe() {
@@ -683,7 +988,7 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 	/*
-	 * Fonctionnalité supplémentaire : pénaliser un moyen de transport
+	 * FonctionnalitÃ© supplÃ©mentaire : pÃ©naliser un moyen de transport
 	 */
 	
 	private List<ArcTrajet> depenaliser(GrapheTrajet gr, List<ArcTrajet> l, String p){
