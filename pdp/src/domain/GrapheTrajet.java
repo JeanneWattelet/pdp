@@ -297,14 +297,14 @@ public class GrapheTrajet implements java.io.Serializable{
 		try {
 
 			ObjectInputStream load = new ObjectInputStream(new FileInputStream("src/data1/ListArcTrajetPied" + jour + ".ser"));
-			ObjectInputStream load1 = new ObjectInputStream(new FileInputStream("src/dataSommetsAretes/vectorTram" + jour + ".dat"));
-			ObjectInputStream load2 = new ObjectInputStream(new FileInputStream("src/dataSommetsAretes/vectorBus" + jour + ".dat"));
+			ObjectInputStream load1 = new ObjectInputStream(new FileInputStream("src/someData/vectorTram" + jour + ".dat"));
+			ObjectInputStream load2 = new ObjectInputStream(new FileInputStream("src/someData/vectorBus" + jour + ".dat"));
 
 			l = (List<ArcTrajet>) load.readObject();
 			System.out.println(l.size());
 			
 			try {
-				ObjectOutputStream load11 = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/aretesMarche" + jour + ".dat"));
+				ObjectOutputStream load11 = new ObjectOutputStream(new FileOutputStream("src/someData/aretesMarche" + jour + ".dat"));
 				load11.writeObject(l);
 				load11.close();
 			}
@@ -354,7 +354,7 @@ public class GrapheTrajet implements java.io.Serializable{
 
 		try {
 
-			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/aretesAttenteApresMarche" + jour + ".dat"));
+			ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesAttenteApresMarche" + jour + ".dat"));
 			save.writeObject(l1);
 			save.close();
 
@@ -419,17 +419,17 @@ public class GrapheTrajet implements java.io.Serializable{
 
 		try {
 			if(p == 0) {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/vectorTram" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/vectorTram" + jour + ".dat"));
 				save.writeObject(lEnd);
 				save.close();
 			}
 			else if(p == 1) {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/vectorBus" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/vectorBus" + jour + ".dat"));
 				save.writeObject(lEnd);
 				save.close();
 			}
 			else {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/vectorOther" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/vectorOther" + jour + ".dat"));
 				save.writeObject(lEnd);
 				save.close();
 			}
@@ -494,17 +494,17 @@ public class GrapheTrajet implements java.io.Serializable{
 
 		try {
 			if(p == 0) {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/aretesTramEntreTous" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesTramEntreTous" + jour + ".dat"));
 				save.writeObject(l);
 				save.close();
 			}
 			else if(p==1) {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/aretesBusEntreTous" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesBusEntreTous" + jour + ".dat"));
 				save.writeObject(l);
 				save.close();
 			}
 			else {
-				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/dataSommetsAretes/aretesOtherEntreTous" + jour + ".dat"));
+				ObjectOutputStream save = new ObjectOutputStream(new FileOutputStream("src/someData/aretesOtherEntreTous" + jour + ".dat"));
 				save.writeObject(l);
 				save.close();
 			}
@@ -1213,3 +1213,4 @@ public class GrapheTrajet implements java.io.Serializable{
 	}
 	
 }
+
