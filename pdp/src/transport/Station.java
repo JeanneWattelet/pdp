@@ -1,8 +1,10 @@
 package transport;
 //import java.util.ArrayList;
+import java.io.Serializable;
 
-public class Station {
+public class Station implements Serializable{
 	
+	private static final long serialVersionUID = 1095912241729437703L;
 	private String id;
 	private String nom;
 	private Coordonnees position;
@@ -57,7 +59,7 @@ public class Station {
 	
 	
 	// Le temps de Marche (en moyenne) entre 2 stations 
-	/*public double TempsMarcheVers(Station to) { // la vitesse moyenne de l'homme en france est estimée a 4.7 km/h
+	/*public double TempsMarcheVers(Station to) { // la vitesse moyenne de l'homme en france est estimÃ©e a 4.7 km/h
 		return  (this.DistanceA(to))/4700 ;
 	}*/
 
