@@ -18,6 +18,6 @@ Certains fonctionnalités que nous utilisons ne sont pas compatible avec les der
 Certains fichiers de données ne peuvent pas être téléchargés sur github à cause de leur volume. En voilà la liste exaustive :
 - stop_times.txt : pour les données GTFS des bus (56Mo) que vous pouvez retrouver à l'adresse suivante : https://www.data.gouv.fr/fr/datasets/gtfs-du-reseau-de-transport-tbm-offre-de-service-bus-et-tram/
 - fv_adresse_p.geojson : Adresses de Bordeaux (80Mo) que vous pouvez retrouver à l'adresse suivante : https://opendata.bordeaux-metropole.fr/explore/dataset/fv_adresse_p/information/
-- Les listes d'ArcTrajet : les arêtes d'attente, de marche et de transport. Ces fichiers doivent être créés à l'aide des fonctions de notre application.
+- Les listes d'ArcTrajet : les arêtes d'attente, de marche et de transport. Ces fichiers doivent être créés à l'aide des fonctions de notre application. Elles seront à télécharger à l'adresse : ******* et à inclure dans le fichier src.
 
 Toutes les informations sur ce projet sont disponibles dans le rapport suivant : https://fr.overleaf.com/read/cgkwnkjcrccv.
