@@ -683,11 +683,11 @@ public class Other extends Application {
 
 						gc.fillText("Plus rapide", bestWidth*0.1*1.35, bestHeight*0.495, bestWidth*0.08);
 						gc.fillText("Moins de marche", bestWidth*0.3*1.25, bestHeight*0.495, bestWidth*0.11);
-						gc.fillText("Moins de transport", bestWidth*0.5*1.23, bestHeight*0.495, bestWidth*0.11);
+						gc.fillText("Trajet de marche uniquement", bestWidth*0.5*1.23, bestHeight*0.495, bestWidth*0.11);
 						gc.fillText("Moins d'attente", bestWidth*0.7*1.215, bestHeight*0.495, bestWidth*0.11);
 						gc.fillText("Heure de depart", bestWidth*0.43*0.65, bestHeight*0.586, bestWidth*0.11);
 						gc.fillText("ou", bestWidth*0.52, bestHeight*0.643, bestWidth*0.03);
-						gc.fillText("Arrivée avant", bestWidth*0.43*0.7, bestHeight*0.697, bestWidth*0.10);
+						gc.fillText("Arriver avant", bestWidth*0.43*0.7, bestHeight*0.697, bestWidth*0.10);
 
 
 						if(countButtonOk == 0) { // added one time to the root
